@@ -32,15 +32,31 @@
 
 执行约束：数据可以跨空间翻译，但执行只发生在度量空间；世界空间不得直接下发速度。完整定义见 [三空间架构](docs/架构/架构_端侧系统架构.md)。
 
-## 演示与证据
+## 案例 B：跨楼层自主导航展示
+
+本节集中展示案例 B 的相关素材：动态环境中的足式机器人跨楼层长航时自主导航闭环。系统以 Unitree Go2 + Livox Mid-360 为验证平台，覆盖端边协同、空间状态、任务契约、行为树编排、局部规划和安全执行。
+
+### 云端闭环演示
 
 ![云端跨楼层闭环演示](docs/media/cross_floor_demo.webp)
 
 - [完整视频](docs/media/cross_floor_demo.mp4)
-- [真机在线 + Elevator-LIO 场景回放](docs/media/cross_floor_with_elevator_lio.webp)
-- [完整回放视频](docs/media/cross_floor_with_elevator_lio.mp4)
+- 云端 vkernel 中已跑通多楼层 11 航点 BT 闭环：PCT → BT → SCAN → Forwarder，SubgoalReached 11/11。
 
-数据集回放是场景重建，不是官方 LIO 结果；完整导航栈在数据集上的回放基线仍在进行中。
+### 真机在线与 Elevator-LIO 场景回放
+
+![真机在线跨楼层与场景回放](docs/media/cross_floor_with_elevator_lio.webp)
+
+- [完整回放视频](docs/media/cross_floor_with_elevator_lio.mp4)
+- 前半段：Go2 + Livox Mid-360 真机在线建图与规划。
+- 后半段：解析 Elevator-LIO 真实 ROS1 bag（`Office9.bag`）并使用 Open3D scan-to-map ICP 回放场景。
+- 数据集回放是场景重建，不是官方 LIO 结果；完整导航栈在数据集上的回放基线仍在进行中。
+
+### 数据状态流转时序图
+
+![数据状态流转时序图](docs/media/state_flow_seq.png)
+
+该图展示案例 B 中从任务意图、全局 / 局部规划、安全动作到设备执行与状态回流的链路。它作为本仓库的导航系统展示，不再放在运行时底座仓库的主展示区。
 
 ## 快速开始
 
@@ -119,4 +135,4 @@ Super-LIO → PCT global guidance → Behavior Tree → SCAN local planner
 
 ## 许可证
 
-许可证以仓库中的 [LICENSE](LICENSE) 为准。
+许可证以仓库中的 [LICENSE](LICENSE) 为准.
