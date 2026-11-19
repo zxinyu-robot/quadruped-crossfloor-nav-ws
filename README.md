@@ -1,6 +1,6 @@
 # Quadruped Cross-Floor Navigation Workspace
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Original code license](https://img.shields.io/badge/Original%20code-MIT-blue.svg)](LICENSE)
 [![ROS 2](https://img.shields.io/badge/ROS%202-Humble-22314E.svg)](https://docs.ros.org/en/humble/)
 
 > 基于 ROS 2 Humble 的 Unitree Go2 跨楼层自主导航工作空间，覆盖任务编排、空间状态运行时、局部规划和安全执行。
@@ -68,7 +68,7 @@ cd quadruped-crossfloor-nav-ws
 git submodule update --init
 ```
 
-第三方版本以 [THIRD_PARTY.md](THIRD_PARTY.md) 为准。
+上述命令不会自动取得历史快照中的第三方组件；版本及许可核查状态见 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
 ### 构建和启动
 
@@ -135,4 +135,4 @@ Super-LIO → PCT global guidance → Behavior Tree → SCAN local planner
 
 ## 许可证
 
-许可证以仓库中的 [LICENSE](LICENSE) 为准.
+本仓库的自研代码采用 [MIT](LICENSE)。`patches/` 中针对第三方项目的补丁以及 `third_party/` 中的代码不属于此授权范围，其版权和许可依各自来源确定。外部依赖仍适用其各自的许可证；具体版本、已知问题和待核实事项见 [THIRD_PARTY.md](THIRD_PARTY.md)。本仓库的 MIT 许可证不改变组合或分发第三方组件时的许可义务。
