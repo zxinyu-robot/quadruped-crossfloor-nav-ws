@@ -1,0 +1,1 @@
+module motionslam_msgs { module msg { module dds_ { struct RuntimeEnvelope_ { uint32 schema_version; uint32 channel_id; sequence <uint8> payload; int64 stamp_ns; }; }; }; };
