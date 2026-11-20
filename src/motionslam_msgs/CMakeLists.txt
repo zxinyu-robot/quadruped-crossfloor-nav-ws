@@ -8,6 +8,8 @@ find_package(std_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RuntimeEnvelope.msg"
+  "msg/PosePoint.msg"
+  "msg/TrajectoryProbe.msg"
   "msg/MotionCommand.msg"
   "msg/TerrainObservation.msg"
   "msg/TerrainDecision.msg"
