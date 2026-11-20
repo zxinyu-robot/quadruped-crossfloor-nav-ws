@@ -1,5 +1,8 @@
 #include "legged_nav/json.hpp"
 
+#include <charconv>
+#include <cmath>
+#include <cstdio>
 #include <cstring>
 
 namespace legged_nav {
@@ -137,7 +140,92 @@ struct Parser {
     }
 };
 
+void dump_into(const JsonValue& v, std::string& out);
+
+void dump_string(const std::string& text, std::string& out) {
+    out += '"';
+    for (unsigned char c : text) {
+        switch (c) {
+            case '"':
+                out += "\\\"";
+                break;
+            case '\\':
+                out += "\\\\";
+                break;
+            case '\n':
+                out += "\\n";
+                break;
+            case '\r':
+                out += "\\r";
+                break;
+            case '\t':
+                out += "\\t";
+                break;
+            case '\b':
+                out += "\\b";
+                break;
+            case '\f':
+                out += "\\f";
+                break;
+            default:
+                if (c < 0x20) {
+                    char buf[8];
+                    std::snprintf(buf, sizeof buf, "\\u%04x", c);
+                    out += buf;
+                } else {
+                    out += static_cast<char>(c);
+                }
+        }
+    }
+    out += '"';
+}
+
+void dump_into(const JsonValue& v, std::string& out) {
+    if (v.is_null()) {
+        out += "null";
+    } else if (v.is_bool()) {
+        out += v.boolean() ? "true" : "false";
+    } else if (v.is_num()) {
+        const double d = v.num();
+        if (!std::isfinite(d)) {
+            out += "null";
+            return;
+        }
+        char buf[32];
+        auto res = std::to_chars(buf, buf + sizeof buf, d);
+        out.append(buf, res.ptr);
+    } else if (v.is_str()) {
+        dump_string(v.str(), out);
+    } else if (v.is_arr()) {
+        out += '[';
+        bool first = true;
+        for (const auto& item : v.arr()) {
+            if (!first) out += ',';
+            first = false;
+            dump_into(item, out);
+        }
+        out += ']';
+    } else if (v.is_obj()) {
+        out += '{';
+        bool first = true;
+        for (const auto& [k, val] : v.obj()) {
+            if (!first) out += ',';
+            first = false;
+            dump_string(k, out);
+            out += ':';
+            dump_into(val, out);
+        }
+        out += '}';
+    }
+}
+
 }  // namespace
+
+std::string dump_json(const JsonValue& v) {
+    std::string out;
+    dump_into(v, out);
+    return out;
+}
 
 std::optional<JsonValue> parse_json(const std::string& text) {
     Parser p{text};

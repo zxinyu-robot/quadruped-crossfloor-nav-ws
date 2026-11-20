@@ -18,9 +18,14 @@ add_library(legged_nav STATIC
     src/vision_loop.cpp
 )
 target_include_directories(legged_nav PUBLIC include)
+
+find_package(Threads REQUIRED)
+target_link_libraries(legged_nav PUBLIC Threads::Threads)
 target_compile_features(legged_nav PUBLIC cxx_std_20)
 
 option(LEGGED_NAV_BUILD_TESTS "build tests" ON)
+option(LEGGED_NAV_BUILD_DDS "build DDS type support (needs libddsc)" OFF)
+
 if(LEGGED_NAV_BUILD_TESTS)
     enable_testing()
     add_executable(test_all tests/test_all.cpp)
@@ -28,4 +33,8 @@ if(LEGGED_NAV_BUILD_TESTS)
     target_compile_definitions(test_all PRIVATE
         LEGGED_NAV_CONTRACT_CASES="${CMAKE_CURRENT_SOURCE_DIR}/tests/contract_cases.json")
     add_test(NAME legged_nav_all COMMAND test_all)
+endif()
+
+if(LEGGED_NAV_BUILD_DDS)
+    add_subdirectory(dds)
 endif()

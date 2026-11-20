@@ -56,4 +56,7 @@ struct JsonValue {
 /// 解析 JSON；失败返回 std::nullopt。
 std::optional<JsonValue> parse_json(const std::string& text);
 
+/// 序列化 JSON（紧凑格式，非有限数写 null）。用于传输层 payload 与外部协议。
+std::string dump_json(const JsonValue& v);
+
 }  // namespace legged_nav

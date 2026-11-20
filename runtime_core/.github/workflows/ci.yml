@@ -52,3 +52,13 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check src tests
       - run: pytest -q
+
+  dds-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: DDS 类型生成物与 ROSIDL 快照同步（无 idlc 降级模式）
+        run: python3 scripts/gen_dds_types.py --check
