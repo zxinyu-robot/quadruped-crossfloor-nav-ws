@@ -53,3 +53,7 @@ src/PCT_planner/
 src/SCAN-Planner/
 # 数据集 (大文件不入库)
 datasets/
+
+# macOS 归档元数据
+._*
+.DS_Store
