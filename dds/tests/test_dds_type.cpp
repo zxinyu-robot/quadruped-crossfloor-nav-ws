@@ -6,18 +6,18 @@
 #include <cstring>
 #include <string>
 
-#include "motionslam_msgs/RuntimeEnvelope.h"
+#include "motionslam_msgs/msg/RuntimeEnvelope.h"
 
 namespace {
 
 int passed = 0;
-#define CHECK(cond)                                                             \
-    do {                                                                        \
-        if (!(cond)) {                                                          \
+#define CHECK(cond)                                                          \
+    do {                                                                     \
+        if (!(cond)) {                                                       \
             std::fprintf(stderr, "FAIL %s:%d %s\n", __FILE__, __LINE__, #cond); \
-            return 1;                                                           \
-        }                                                                       \
-        ++passed;                                                               \
+            return 1;                                                        \
+        }                                                                    \
+        ++passed;                                                            \
     } while (0)
 
 constexpr const char* kExpectedTypeName = "motionslam_msgs::msg::dds_::RuntimeEnvelope_";
@@ -41,8 +41,8 @@ int test_topic_creation() {
     dds_qset_reliability(qos, DDS_RELIABILITY_RELIABLE, DDS_SECS(1));
     dds_qset_history(qos, DDS_HISTORY_KEEP_LAST, 10);
 
-    dds_entity_t tp = dds_create_topic(pp, &motionslam_msgs_msg_dds__RuntimeEnvelope__desc,
-                                       kExpectedTopicName, qos, nullptr);
+    dds_entity_t tp = dds_create_topic(
+        pp, &motionslam_msgs_msg_dds__RuntimeEnvelope__desc, kExpectedTopicName, qos, nullptr);
     CHECK(tp >= 0);
 
     dds_entity_t wr = dds_create_writer(pp, tp, qos, nullptr);

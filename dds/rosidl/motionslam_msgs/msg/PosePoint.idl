@@ -1,0 +1,20 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from motionslam_msgs/msg/PosePoint.msg
+// generated code does not contain a copyright notice
+
+
+module motionslam_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "轨迹点（DDS 互通实验：嵌套自定义消息）")
+    struct PosePoint {
+      double x;
+
+      double y;
+
+      double z;
+
+      double yaw_deg;
+    };
+  };
+};

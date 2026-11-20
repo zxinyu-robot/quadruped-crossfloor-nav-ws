@@ -1,0 +1,28 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from motionslam_msgs/msg/TrajectoryProbe.msg
+// generated code does not contain a copyright notice
+
+#include "motionslam_msgs/msg/PosePoint.idl"
+#include "std_msgs/msg/Header.idl"
+
+module motionslam_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "DDS 互通实验载荷：嵌套标准消息 + 自定义消息数组 + string + 原生数组")
+    struct TrajectoryProbe {
+      std_msgs::msg::Header header;
+
+      string proposal_id;
+
+      string model_id;
+
+      sequence<double> stamps_s;
+
+      sequence<motionslam_msgs::msg::PosePoint> points;
+
+      uint8 kind;
+
+      boolean ok;
+    };
+  };
+};
