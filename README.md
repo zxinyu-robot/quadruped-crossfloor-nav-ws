@@ -32,6 +32,31 @@
 
 执行约束：数据可以跨空间翻译，但执行只发生在度量空间；世界空间不得直接下发速度。完整定义见 [三空间架构](docs/架构/架构_端侧系统架构.md)。
 
+## 端侧运行时叠加（runtime_core/）
+
+本仓在度量空间执行栈之上叠加了一层 ROS-free 的端侧任务运行时 `runtime_core/`
+（源自 [Autonomous-Navigation-for-Legged-Robots](https://github.com/zxinyu-robot/Autonomous-Navigation-for-Legged-Robots)，
+以 git subtree 方式并入）：
+
+| 层 | 位置 | 负责 | 契约 / 接口 |
+| --- | --- | --- | --- |
+| 任务空间 | `runtime_core/` | 视觉 → 语义观测 → TaskIntent 契约准入 → StateGate → 技能 → Forwarder → 执行反馈 | `motionslam.task_intent.v1` / `motionslam.execution_feedback.v1` |
+| 度量空间 | `src/`、`scripts/` | PCT → BT → SCAN → cmd_vel forwarder → 平台 | `/demo/mission/semantic_goal`、`/demo/mission/event` |
+
+两层接缝是 **Forwarder ↔ Thin Harness**：`ActionStep`（navigate_to / return_home /
+explore / stand / stop）对应 `thin_harness_node.py` 的 Task Intent API（TCP :9879 下行、
+:9880 上行）。任务运行时不下发速度，执行权始终留在度量空间。
+
+`runtime_core/` 自带构建与测试（CMake + CTest、pytest），契约常量的单一来源是
+`runtime_core/contracts/runtime_contract.json`：
+
+```bash
+cd runtime_core
+cmake -S . -B build -DLEGGED_NAV_BUILD_TESTS=ON && cmake --build build -j
+ctest --test-dir build --output-on-failure     # 231 项检查
+pip install -e ".[dev]" && pytest -q           # 91 项
+```
+
 ## 案例 B：跨楼层自主导航展示
 
 本节集中展示案例 B 的相关素材：动态环境中的足式机器人跨楼层长航时自主导航闭环。系统以 Unitree Go2 + Livox Mid-360 为验证平台，覆盖端边协同、空间状态、任务契约、行为树编排、局部规划和安全执行。
@@ -103,7 +128,8 @@ Super-LIO → PCT global guidance → Behavior Tree → SCAN local planner
 ## 项目结构与边界
 
 - `motionslam_bringup`：行为树编排。
-- `runtime/task_runtime`：任务运行时。
+- `runtime/task_runtime`：ROS 侧任务运行时。
+- `runtime_core/`：ROS-free 端侧任务运行时（TaskIntent 契约/准入/门控/技能/Forwarder），见上节。
 - Forwarders：控制指令和 Sport API 适配。
 - `config/`：真机与云端参数基线。
 - `scripts/`：构建、运维和导航入口。
