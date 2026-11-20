@@ -32,7 +32,48 @@
 
 ---
 
-## 2. 类型生成链路（A1 路线）
+## 2. 一条命令复现（MVP）
+
+```bash
+# 1) 构建（含 DDS 类型支持与实验工具）
+cmake -S . -B build -DLEGGED_NAV_BUILD_TESTS=ON -DLEGGED_NAV_BUILD_DDS=ON
+cmake --build build -j
+
+# 2) 跑双向互通实验（会自动调用 ros2 CLI 作为对端）
+source /opt/ros/jazzy/setup.bash
+python3 scripts/dds_interop_check.py \
+    --native build/dds/interop_native \
+    --ws-setup /ws/install/setup.bash     # 有自定义消息时必填
+```
+
+输出：`dds/reports/dds_interop_report.md` 与 `dds_interop_report.json`（含环境、逐项结果、期望值）。
+
+### 覆盖的两种载荷
+
+| 类型 | 覆盖点 |
+| --- | --- |
+| `motionslam_msgs/msg/RuntimeEnvelope` | 基础标量 + `uint8[]` 变长序列 |
+| `motionslam_msgs/msg/TrajectoryProbe` | 嵌套 `std_msgs/Header`、嵌套自定义消息数组 `PosePoint[]`、`string`、`float64[]`、`bool` |
+
+每次运行都会断言**字段值**（不止"能连上"）：
+
+| 方向 | 断言内容 |
+| --- | --- |
+| Native → ROS | `ros2 topic echo --once` 输出含 `schema_version/channel_id`、`proposal_id/frame_id/坐标` |
+| ROS → Native | Native 打印的 JSON 含 ROS 端发布的具体值（如 `"payload": "Hi"`、`"kind": 3`） |
+
+### 最近一次结果
+
+```
+环境：ROS jazzy · rmw_cyclonedds_cpp · domain 0 · ros-jazzy-cyclonedds 0.10.5
+结论：4/4 通过
+  native_to_ros  envelope  PASS
+  ros_to_native  envelope  PASS
+  native_to_ros  probe     PASS
+  ros_to_native  probe     PASS
+```
+
+## 3. 类型生成链路（A1 路线）
 
 `.msg` 是唯一人工维护的定义，其余全部是**生成物**：
 
@@ -71,7 +112,7 @@ module pkg { module msg { struct Type { ... }; }; };
 
 ---
 
-## 3. 使用
+## 4. 使用
 
 ```bash
 # 1) 刷新 ROSIDL 导出快照（需要 ROS 环境）
@@ -113,19 +154,19 @@ ros2 topic pub --once /runtime/envelope motionslam_msgs/msg/RuntimeEnvelope \
 
 ---
 
-## 4. 未验证 / 待办
+## 5. 未验证 / 待办
 
 | 项 | 状态 |
 | --- | --- |
 | 跨机（不同主机）互通 | 未验证 |
-| `string` 字段与嵌套消息 | 未验证（当前只有 `uint8[]`） |
+| `string` 字段与嵌套消息 | **已验证**（`TrajectoryProbe`：Header + PosePoint[] + string） |
 | 大载荷（点云 / RGB 帧） | 未验证；这是引入 SHM 的前提 |
 | SHM（Cyclone 0.10 走 iceoryx） | 未验证 |
 | `partition` 隔离 | 未验证；首期建议用 `ROS_DOMAIN_ID` |
 | `@appendable` / XCDR2 | 未验证；首期固定 `@final` + XCDR1 |
 | QoS 组合（BEST_EFFORT / KEEP_LAST 深度） | 只验证了 RELIABLE + KEEP_LAST 10 |
 
-## 5. 版本前置条件
+## 6. 版本前置条件
 
 | 项 | 要求 | 说明 |
 | --- | --- | --- |

@@ -113,9 +113,8 @@ def build(dds_root: Path, msgs: list[str], roots: list[Path], idlc: Path,
         dst.parent.mkdir(parents=True, exist_ok=True)
         dst.write_text(transform(src.read_text(encoding="utf-8"), pkg, typ), encoding="utf-8")
 
-        pkg_gen = gen_dir / pkg
-        pkg_gen.mkdir(parents=True, exist_ok=True)
-        cmd = [str(idlc), "-I", str(idl_dir), "-o", str(pkg_gen), "-l", "c"]
+        cmd = [str(idlc), "-I", str(idl_dir), "-b", str(idl_dir), "-o", str(gen_dir),
+               "-l", "c"]
         if not typeinfo:
             cmd.append("-t")
         cmd.append(str(dst))
@@ -123,6 +122,7 @@ def build(dds_root: Path, msgs: list[str], roots: list[Path], idlc: Path,
         if res.returncode != 0:
             raise SystemExit(f"idlc 失败 {msg}:\n{res.stdout}\n{res.stderr}")
 
+        pkg_gen = gen_dir / pkg / "msg"
         c_file = pkg_gen / f"{typ}.c"
         h_file = pkg_gen / f"{typ}.h"
         if not c_file.is_file():
@@ -158,7 +158,13 @@ def build(dds_root: Path, msgs: list[str], roots: list[Path], idlc: Path,
             "m_typename": expected,
             "m_flagset": flags[0].strip() if flags else "",
         }
-    manifest["order"] = ordered
+    manifest["order"] = sorted(ordered)
+    manifest["generated_files"] = sorted(
+        str(p.relative_to(dds_root)).replace("\\", "/")
+        for p in gen_dir.rglob("*") if p.is_file()
+    )
+    # 键序固定，保证 --check 跨次运行/跨目录比对稳定
+    manifest["messages"] = dict(sorted(manifest["messages"].items()))
     (dds_root / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
@@ -236,6 +242,12 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"缺少 ROSIDL 导出快照：{snapshot}（先跑 --refresh-rosidl）")
 
     msgs = args.msg
+    if not msgs and args.check:
+        # --check 以已生成清单为准，避免把依赖类型也当成待生成项
+        manifest_path = dds_root / "manifest.json"
+        if manifest_path.is_file():
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            msgs = sorted(manifest.get("messages", {}).keys())
     if not msgs:
         msgs = sorted(
             f"{pkgdir.name}/msg/{f.stem}"

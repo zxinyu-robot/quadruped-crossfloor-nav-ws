@@ -123,7 +123,8 @@ def join(toks: list[Tok]) -> str:
                 need_space = False
             if prev.text in NO_SPACE_BOTH or t.text in NO_SPACE_BOTH:
                 need_space = False
-            if t.kind == "ppd":
+            if t.kind == "ppd" or prev.kind == "ppd":
+                # 预处理指令必须独占一行
                 need_space = False
                 out.append("\n")
             if need_space:

@@ -12,7 +12,7 @@ if(LEGGED_NAV_BUILD_DDS)
     find_package(Threads REQUIRED)
 
     file(GLOB_RECURSE LEGGED_NAV_DDS_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/gen/*/*.c")
+        "${CMAKE_CURRENT_SOURCE_DIR}/gen/*/*/*.c")
 
     add_library(legged_nav_dds_types STATIC ${LEGGED_NAV_DDS_SOURCES})
     target_include_directories(legged_nav_dds_types PUBLIC
@@ -25,4 +25,8 @@ if(LEGGED_NAV_BUILD_DDS)
         target_link_libraries(test_dds_type PRIVATE legged_nav_dds_types)
         add_test(NAME legged_nav_dds_type COMMAND test_dds_type)
     endif()
+
+    # 互通实验工具（MVP）：需要一台跑着 ROS 2 的机器来做对端验证
+    add_executable(interop_native lab/interop_native.cpp)
+    target_link_libraries(interop_native PRIVATE legged_nav_dds_types)
 endif()
