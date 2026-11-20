@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="660" font-family="Noto Sans CJK SC, PingFang SC, sans-serif" font-size="13">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#444"/>
+    </marker>
+    <marker id="arrR" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#b03030"/>
+    </marker>
+  </defs>
+  <style>
+    .layer { fill:#f7f9fc; stroke:#8899aa; rx:8 }
+    .mod { fill:#ffffff; stroke:#4a6fa5; stroke-width:1.2; rx:6 }
+    .ext { fill:#eef4ee; stroke:#5a8a5a; rx:6 }
+    .ttl { font-size:14px; font-weight:bold; fill:#223}
+    .lbl { font-size:12px; fill:#333 }
+    .sm  { font-size:11px; fill:#667 }
+    .red { fill:#b03030; font-size:11px }
+    .flow { stroke:#444; stroke-width:1.4; fill:none; marker-end:url(#arr) }
+    .up { stroke:#b03030; stroke-width:1.4; fill:none; stroke-dasharray:5,3; marker-end:url(#arrR) }
+  </style>
+
+  <text x="20" y="24" class="ttl">端侧自主导航闭环 — 项目整体架构</text>
+
+  <!-- L1 数据源 -->
+  <rect x="40" y="46" width="420" height="74" class="layer"/>
+  <text x="56" y="64" class="lbl">数据源（上行）</text>
+  <rect x="56" y="72" width="180" height="36" class="mod"/>
+  <text x="70" y="88" class="lbl">RGB 视觉流</text>
+  <text x="70" y="101" class="sm">数据集帧 / 相机 uplink</text>
+  <rect x="248" y="72" width="196" height="36" class="mod"/>
+  <text x="260" y="88" class="lbl">空间状态 SpatialState</text>
+  <text x="260" y="101" class="sm">位姿·置信度·地图版本·有效期</text>
+
+  <!-- L2 感知 -->
+  <rect x="40" y="140" width="420" height="96" class="layer"/>
+  <text x="56" y="158" class="lbl">感知：vlm_adapter</text>
+  <rect x="56" y="166" width="128" height="56" class="mod"/>
+  <text x="66" y="183" class="lbl">VLMBackend</text>
+  <text x="66" y="197" class="sm">协议</text>
+  <rect x="196" y="166" width="116" height="56" class="mod"/>
+  <text x="206" y="183" class="lbl">StubVLM</text>
+  <text x="206" y="197" class="sm">离线替身</text>
+  <rect x="320" y="166" width="124" height="56" class="ext"/>
+  <text x="330" y="183" class="lbl">QwenVLBackend</text>
+  <text x="330" y="197" class="sm">Qwen2.5-VL-7B</text>
+  <text x="330" y="211" class="sm">GPU/Jetson</text>
+  <line x1="184" y1="194" x2="196" y2="194" class="flow"/>
+  <line x1="312" y1="194" x2="320" y2="194" class="flow"/>
+
+  <!-- L3 决策合成 -->
+  <rect x="40" y="256" width="420" height="96" class="layer"/>
+  <text x="56" y="274" class="lbl">决策合成：vision_loop</text>
+  <rect x="56" y="282" width="388" height="56" class="mod"/>
+  <text x="66" y="298" class="lbl">observation_to_intent（保守规则，可审计）</text>
+  <text x="66" y="312" class="sm">hazards→Stop ｜ target_visible→Navigate ｜ 低置信度→不发意图</text>
+  <text x="66" y="326" class="sm">输出：TaskIntent(JSON) — 只到技能层</text>
+
+  <!-- L4 契约与门控 -->
+  <rect x="40" y="372" width="420" height="110" class="layer"/>
+  <text x="56" y="390" class="lbl">契约与门控</text>
+  <rect x="56" y="398" width="120" height="72" class="mod"/>
+  <text x="66" y="414" class="lbl">task_intent</text>
+  <text x="66" y="428" class="sm">schema·平台·禁区</text>
+  <text x="66" y="442" class="sm">禁控字段 fail-closed</text>
+  <rect x="188" y="398" width="120" height="72" class="mod"/>
+  <text x="198" y="414" class="lbl">admission</text>
+  <text x="198" y="428" class="sm">task_id 幂等</text>
+  <text x="198" y="442" class="sm">抢占 / 忙拒</text>
+  <rect x="320" y="398" width="124" height="72" class="mod"/>
+  <text x="330" y="414" class="lbl">StateGate</text>
+  <text x="330" y="428" class="sm">有效期·置信度</text>
+  <text x="330" y="442" class="sm">地图版本一致</text>
+  <text x="330" y="456" class="red">失效 → HOLDING</text>
+
+  <!-- L5 编排 -->
+  <rect x="40" y="502" width="420" height="64" class="layer"/>
+  <rect x="56" y="512" width="388" height="44" class="mod"/>
+  <text x="66" y="530" class="lbl">TaskRuntime（状态机：accepted→running→succeeded/failed/canceled/holding）</text>
+  <text x="66" y="546" class="sm">逐技能编译 ActionStep · deadline 约束 · cancel/preempt</text>
+
+  <!-- L6 执行 -->
+  <rect x="40" y="586" width="420" height="62" class="layer"/>
+  <rect x="56" y="596" width="120" height="42" class="mod"/>
+  <text x="66" y="612" class="lbl">skills</text>
+  <text x="66" y="626" class="sm">ActionStep 序列</text>
+  <rect x="188" y="596" width="120" height="42" class="mod"/>
+  <text x="198" y="612" class="lbl">Forwarder 协议</text>
+  <text x="198" y="626" class="sm">高层原语 only</text>
+  <rect x="320" y="596" width="124" height="42" class="ext"/>
+  <text x="330" y="612" class="lbl">Sim / 平台 API</text>
+  <text x="330" y="626" class="sm">Sport API 适配层</text>
+
+  <!-- 下行箭头 -->
+  <path d="M250,120 L250,140" class="flow"/>
+  <path d="M250,236 L250,256" class="flow"/>
+  <path d="M250,352 L250,372" class="flow"/>
+  <path d="M250,482 L250,502" class="flow"/>
+  <path d="M250,566 L250,586" class="flow"/>
+
+  <!-- 反馈上行（右侧） -->
+  <path d="M470,617 L540,617 L540,380 L470,380" class="up"/>
+  <rect x="540" y="560" width="300" height="88" class="mod"/>
+  <text x="556" y="578" class="lbl">ExecutionFeedback（上行回流）</text>
+  <text x="556" y="594" class="sm">终态 + 进度 + 位姿 + 决策留痕</text>
+  <text x="556" y="608" class="sm">schema: motionslam.execution_feedback.v1</text>
+  <text x="556" y="622" class="sm">每步可审计：accepted/started/progress/终态</text>
+
+  <!-- 安全隔离标注 -->
+  <rect x="540" y="290" width="300" height="120" class="mod" stroke="#b03030"/>
+  <text x="556" y="308" class="lbl">安全隔离</text>
+  <text x="556" y="324" class="sm">· 意图禁止携带 cmd_vel / twist / 轨迹话题</text>
+  <text x="556" y="340" class="sm">  → REJECT_FORBIDDEN_CONTROL</text>
+  <text x="556" y="356" class="sm">· 模型决策只到技能层，速度/电机层不下放</text>
+  <text x="556" y="372" class="sm">· 未知禁区 ID 失败即拒（fail closed）</text>
+  <text x="556" y="388" class="sm">· VLM 观测不直控执行，经契约层复核</text>
+
+  <!-- 证据等级 -->
+  <rect x="540" y="430" width="300" height="110" class="mod"/>
+  <text x="556" y="448" class="lbl">证据等级（README 口径）</text>
+  <text x="556" y="464" class="sm">已验证：闭环链路 + 契约失效场景（合成数据·单元测试）</text>
+  <text x="556" y="480" class="sm">计划中：Qwen2.5-VL-7B 真推理（GPU/Jetson）</text>
+  <text x="556" y="496" class="sm">计划中：真机 Sport API 闭环</text>
+  <text x="556" y="512" class="sm">stub / sim 不写成视觉感知或真机能力</text>
+</svg>

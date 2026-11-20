@@ -1,0 +1,225 @@
+{
+  "$comment": "TaskIntent 契约的双实现对照语料。C++（tests/test_all.cpp）与 Python（tests/test_contract_parity.py）读取同一文件并逐条比对判定结果；intent 存为 JSON 文本，避免两侧序列化差异。",
+  "cases": [
+    {
+      "name": "valid_navigate_return",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "schema_missing",
+      "expect": "REJECT_SCHEMA:missing",
+      "intent": "{\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "schema_unknown",
+      "expect": "REJECT_SCHEMA:other.v9",
+      "intent": "{\"schema\":\"other.v9\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "schema_padded_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"  motionslam.task_intent.v1  \",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "task_id_missing_key",
+      "expect": "REJECT_MISSING_TASK_ID",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "task_id_empty",
+      "expect": "REJECT_MISSING_TASK_ID",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"   \",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "task_id_not_string",
+      "expect": "REJECT_MISSING_TASK_ID",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":123,\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "robot_missing",
+      "expect": "REJECT_MISSING_ROBOT",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "robot_not_object",
+      "expect": "REJECT_MISSING_ROBOT",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":\"go2\",\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "robot_platform_missing",
+      "expect": "REJECT_MISSING_ROBOT",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "robot_platform_unknown",
+      "expect": "REJECT_ROBOT_PLATFORM:a1",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"a1\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "robot_platform_padded_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\" unitree_go2 \",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "robot_sn_missing",
+      "expect": "REJECT_MISSING_ROBOT_ID",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "robot_id_alias_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"robot_id\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "world_ref_missing",
+      "expect": "REJECT_MISSING_WORLD_REF",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "map_id_missing",
+      "expect": "REJECT_MISSING_MAP_ID",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "revision_missing",
+      "expect": "REJECT_BAD_REVISION",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\"},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "revision_string",
+      "expect": "REJECT_BAD_REVISION",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":\"3\"},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "revision_negative",
+      "expect": "REJECT_BAD_REVISION",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":-1},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "revision_float_truncates_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3.0},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "skills_missing",
+      "expect": "REJECT_MISSING_SKILLS",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "skills_empty",
+      "expect": "REJECT_MISSING_SKILLS",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "skill_not_object",
+      "expect": "REJECT_SKILL_0_TYPE",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[\"Navigate\"],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "skill_name_missing",
+      "expect": "REJECT_SKILL_0_MISSING_NAME",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"goal\":{\"x\":1,\"y\":0,\"z\":0}}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "skill_name_alias_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"skill\":\"Stop\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "skill_unsupported",
+      "expect": "REJECT_SKILL_UNSUPPORTED:Fly",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Fly\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "navigate_goal_missing",
+      "expect": "REJECT_SKILL_0_MISSING_GOAL",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "navigate_goal_not_object",
+      "expect": "REJECT_SKILL_0_MISSING_GOAL",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":[1,2,3]}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "navigate_goal_string_component",
+      "expect": "REJECT_SKILL_0_BAD_GOAL",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":\"2\",\"y\":0,\"z\":0}}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "navigate_goal_missing_z",
+      "expect": "REJECT_SKILL_0_BAD_GOAL",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":1,\"y\":0}}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "navigate_goal_int_components_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":1,\"y\":0,\"z\":0}}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "deadline_string",
+      "expect": "REJECT_BAD_DEADLINE",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":\"120\"},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "deadline_zero",
+      "expect": "REJECT_BAD_DEADLINE",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "deadline_null_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":null},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "priority_not_number",
+      "expect": "REJECT_BAD_PRIORITY",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":\"high\"}}"
+    },
+    {
+      "name": "preemptible_not_bool",
+      "expect": "REJECT_BAD_PREEMPTIBLE",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"preemptible\":\"yes\"}}"
+    },
+    {
+      "name": "forbidden_areas_not_list",
+      "expect": "REJECT_BAD_FORBIDDEN_AREAS",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false},\"navigation\":{\"forbidden_areas\":\"zone_A\"}}"
+    },
+    {
+      "name": "forbidden_areas_empty_string",
+      "expect": "REJECT_BAD_FORBIDDEN_AREAS",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false},\"navigation\":{\"forbidden_areas\":[\"  \"]}}"
+    },
+    {
+      "name": "forbidden_areas_not_string",
+      "expect": "REJECT_BAD_FORBIDDEN_AREAS",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false},\"navigation\":{\"forbidden_areas\":[1]}}"
+    },
+    {
+      "name": "forbidden_areas_padded_ok",
+      "expect": "OK",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false},\"navigation\":{\"forbidden_areas\":[\" zone_A \"]}}"
+    },
+    {
+      "name": "forbidden_control_top_level",
+      "expect": "REJECT_FORBIDDEN_CONTROL:cmd_vel",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false},\"cmd_vel\":0.5}"
+    },
+    {
+      "name": "forbidden_control_nested_goal",
+      "expect": "REJECT_FORBIDDEN_CONTROL:initial_path",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35,\"initial_path\":\"/x\"}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false}}"
+    },
+    {
+      "name": "forbidden_control_in_array",
+      "expect": "REJECT_FORBIDDEN_CONTROL:twist",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false},\"extra\":[{\"twist\":{\"linear\":1.0}}]}"
+    },
+    {
+      "name": "forbidden_control_capitalized",
+      "expect": "REJECT_FORBIDDEN_CONTROL:Twist",
+      "intent": "{\"schema\":\"motionslam.task_intent.v1\",\"task_id\":\"task-001\",\"robot\":{\"platform\":\"unitree_go2_edu\",\"sn\":\"go2_001\"},\"world_ref\":{\"map_id\":\"map_01\",\"floor_id\":\"floor_01\",\"frame_id\":\"world\",\"revision\":3},\"skills\":[{\"name\":\"Navigate\",\"goal\":{\"x\":2.0,\"y\":0.5,\"z\":0.35}},{\"name\":\"ReturnHome\"}],\"policy\":{\"deadline_s\":120.0},\"execution\":{\"priority\":0,\"preemptible\":false},\"Twist\":{\"linear\":1.0}}"
+    }
+  ]
+}
