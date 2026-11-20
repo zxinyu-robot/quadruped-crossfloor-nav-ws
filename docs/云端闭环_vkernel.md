@@ -37,6 +37,19 @@ docker exec motionslam-cloud python3 /ws/src/motionslam_bringup/scripts/task_int
 判据：`cloud_mission_watch` 退出码 0（`mission_succeeded`，15/15 子目标）；
 `task_intent_client` 打印 `task_terminal state=succeeded`。
 
+### 无 Docker 环境（系统直装）
+
+部分 GPU pod 不提供 docker.sock / `CAP_SYS_ADMIN`，容器内起不了 dockerd，
+镜像流程不可用。此时改用系统直装（Ubuntu 22.04 → Humble，24.04 → Jazzy）：
+
+```bash
+sudo ./scripts/dev/cloud_sim_bootstrap_jazzy.sh --build   # 幂等，含第三方克隆与编译
+```
+
+脚本只做环境对齐（`/ws`、`/opt/ros/humble` 软链，Jazzy 的 `cv_bridge` 头名兼容），
+不改仓库脚本；后续起栈命令与上文一致。复现记录见
+[云端跨楼层仿真复现](../证据汇报/云端跨楼层仿真_Jazzy原生复现_20261121.md)。
+
 ## 已知差异（相对真机）
 
 - 无传感器/无 Super-LIO：`/lio/cloud_world`、`/lio/robo/odom` 由 vkernel 直接给出（RELIABLE QoS）。

@@ -33,6 +33,7 @@ scripts/
 │   ├── build_ws.sh
 │   ├── build_pct_planner.sh          # 仅 Python PCT 对照
 │   ├── clone_pct_planner.sh
+│   ├── cloud_sim_bootstrap_jazzy.sh  # 无 Docker 原生环境引导（22.04/24.04 自适应）
 │   └── source_ws_env.sh
 │
 ├── ops/                    # 运维
