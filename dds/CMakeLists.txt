@@ -29,4 +29,8 @@ if(LEGGED_NAV_BUILD_DDS)
     # 互通实验工具（MVP）：需要一台跑着 ROS 2 的机器来做对端验证
     add_executable(interop_native lab/interop_native.cpp)
     target_link_libraries(interop_native PRIVATE legged_nav_dds_types)
+
+    # 同机吞吐/时延基准：用于对比 SHM 开/关
+    add_executable(dds_bench lab/dds_bench.cpp)
+    target_link_libraries(dds_bench PRIVATE legged_nav_dds_types)
 endif()

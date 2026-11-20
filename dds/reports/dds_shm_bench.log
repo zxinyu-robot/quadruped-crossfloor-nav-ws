@@ -1,0 +1,16 @@
+=== SHM OFF ===
+{"case": "shm_off_1KiB", {"role": "pub", "sent": 1000, "size": 1024, "seconds": 0.006, "msg_per_s": 158501, "mb_per_s": 154.8} }
+{"case": "shm_off_1KiB", {"role": "sub", "got": 1000, "size": 1024, "seconds": 0.005, "msg_per_s": 208748, "mb_per_s": 203.9, "latency_us": {"p50": 1215, "p95": 2143, "p99": 2250}} }
+{"case": "shm_off_64KiB", {"role": "pub", "sent": 500, "size": 65536, "seconds": 0.030, "msg_per_s": 16465, "mb_per_s": 1029.1} }
+{"case": "shm_off_64KiB", {"role": "sub", "got": 500, "size": 65536, "seconds": 0.296, "msg_per_s": 1691, "mb_per_s": 105.7, "latency_us": {"p50": 117610, "p95": 263548, "p99": 266835}} }
+{"case": "shm_off_1MiB", {"role": "pub", "sent": 100, "size": 1048576, "seconds": 0.101, "msg_per_s": 988, "mb_per_s": 988.3} }
+{"case": "shm_off_1MiB", {"role": "sub", "got": 100, "size": 1048576, "seconds": 0.797, "msg_per_s": 126, "mb_per_s": 125.5, "latency_us": {"p50": 378656, "p95": 689435, "p99": 700257}} }
+=== SHM ON (iceoryx) ===
+/dev/shm 段（后看）: 68759176
+{"case": "shm_on_1KiB", {"role": "pub", "sent": 1000, "size": 1024, "seconds": 0.003, "msg_per_s": 327675, "mb_per_s": 320.0} }
+{"case": "shm_on_1KiB", 1795215611.876494 [0]  dds_bench: DDS reader with topic rt/bench/envelope : iceoryx subscriber - TOO_MANY_CHUNKS_HELD_IN_PARALLEL -could not take sample }
+{"case": "shm_on_64KiB", {"role": "pub", "sent": 500, "size": 65536, "seconds": 0.014, "msg_per_s": 34926, "mb_per_s": 2182.9} }
+{"case": "shm_on_64KiB", {"role": "sub", "got": 500, "size": 65536, "seconds": 0.019, "msg_per_s": 26047, "mb_per_s": 1628.0, "latency_us": {"p50": 3843, "p95": 5690, "p99": 5885}} }
+{"case": "shm_on_1MiB", {"role": "pub", "sent": 100, "size": 1048576, "seconds": 0.099, "msg_per_s": 1011, "mb_per_s": 1010.6} }
+{"case": "shm_on_1MiB", {"role": "sub", "got": 100, "size": 1048576, "seconds": 0.097, "msg_per_s": 1029, "mb_per_s": 1029.0, "latency_us": {"p50": 2473, "p95": 4141, "p99": 4213}} }
+/dev/shm 段（后）: 68759176	/dev/shm/iceoryx_mgmt 1191480800	/dev/shm/root 
