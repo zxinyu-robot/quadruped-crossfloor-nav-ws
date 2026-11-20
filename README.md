@@ -32,30 +32,36 @@
 
 执行约束：数据可以跨空间翻译，但执行只发生在度量空间；世界空间不得直接下发速度。完整定义见 [三空间架构](docs/架构/架构_端侧系统架构.md)。
 
-## 端侧运行时叠加（runtime_core/）
+## 端侧运行时（runtime_core/）
 
-本仓在度量空间执行栈之上叠加了一层 ROS-free 的端侧任务运行时 `runtime_core/`
-（源自 [Autonomous-Navigation-for-Legged-Robots](https://github.com/zxinyu-robot/Autonomous-Navigation-for-Legged-Robots)，
-以 git subtree 方式并入）：
+本仓包含两层：度量空间执行栈 + ROS-free 的端侧任务运行时 `runtime_core/`。
+`runtime_core/` 原为独立仓库 `Autonomous-Navigation-for-Legged-Robots`，
+**已并入本仓并停止独立维护**（该仓库仅保留归档说明）：
 
 | 层 | 位置 | 负责 | 契约 / 接口 |
 | --- | --- | --- | --- |
 | 任务空间 | `runtime_core/` | 视觉 → 语义观测 → TaskIntent 契约准入 → StateGate → 技能 → Forwarder → 执行反馈 | `motionslam.task_intent.v1` / `motionslam.execution_feedback.v1` |
 | 度量空间 | `src/`、`scripts/` | PCT → BT → SCAN → cmd_vel forwarder → 平台 | `/demo/mission/semantic_goal`、`/demo/mission/event` |
 
-两层接缝是 **Forwarder ↔ Thin Harness**：`ActionStep`（navigate_to / return_home /
-explore / stand / stop）对应 `thin_harness_node.py` 的 Task Intent API（TCP :9879 下行、
-:9880 上行）。任务运行时不下发速度，执行权始终留在度量空间。
+两层接缝是 **DDS（RTPS over UDP）**：`runtime_core` 作为原生 CycloneDDS 参与者直接与导航栈
+通信，不经过任何桥接节点。实测结论（topic 需加 `rt/` 前缀、类型名需 `pkg::msg::dds_::Type_`）
+见 [runtime_core/docs/dds-interop.md](runtime_core/docs/dds-interop.md)。任务运行时不下发速度，
+执行权始终留在度量空间。
 
 `runtime_core/` 自带构建与测试（CMake + CTest、pytest），契约常量的单一来源是
 `runtime_core/contracts/runtime_contract.json`：
 
 ```bash
 cd runtime_core
+python3 scripts/gen_contract.py --check        # 契约生成物同步
+python3 scripts/gen_dds_types.py --check       # DDS 类型生成物同步
 cmake -S . -B build -DLEGGED_NAV_BUILD_TESTS=ON && cmake --build build -j
-ctest --test-dir build --output-on-failure     # 231 项检查
+ctest --test-dir build --output-on-failure     # 231 项契约检查
 pip install -e ".[dev]" && pytest -q           # 91 项
 ```
+
+> 整体演示视频（视觉意图 → TaskIntent → 导航栈 → 执行反馈）待重新录制后补充；
+> 原先独立仓库的 ARKitScenes 回放视频已随迁移下线。
 
 ## 案例 B：跨楼层自主导航展示
 
