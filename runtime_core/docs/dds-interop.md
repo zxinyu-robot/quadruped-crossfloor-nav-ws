@@ -154,19 +154,37 @@ ros2 topic pub --once /runtime/envelope motionslam_msgs/msg/RuntimeEnvelope \
 
 ---
 
-## 5. 未验证 / 待办
+## 5. 同机 SHM（iceoryx）实测
+
+`scripts/dds_shm_bench.sh` 对比 SHM 开/关的吞吐与时延，原始输出见
+[dds/reports/dds_shm_bench.log](dds/reports/dds_shm_bench.log)，汇总见
+[dds/reports/dds_shm_bench.md](dds/reports/dds_shm_bench.md)。
+
+| 载荷 | SHM 关 | SHM 开 |
+| --- | --- | --- |
+| 64 KiB | 106 MB/s · p50 118 ms | **1628–2192 MB/s · p50 3.8 ms** |
+| 1 MiB | 126 MB/s · p50 379 ms | **1029 MB/s · p50 2.5 ms** |
+| 1 KiB | 204 MB/s · p50 1.2 ms | 408 MB/s（n=100） |
+
+`/dev/shm` 中可见 `iceoryx_mgmt`(68.8 MB) 与 `root`(1.19 GB) 两个段，RouDi 日志
+`Reserving ... bytes in the shared memory`。
+
+**结论**：大载荷走 SHM 收益 8–21 倍、时延降两个数量级；小载荷收益有限且会撞
+chunk 池上限（`TOO_MANY_CHUNKS_HELD_IN_PARALLEL`，已记录，不回避）。
+
+## 6. 未验证 / 待办
 
 | 项 | 状态 |
 | --- | --- |
 | 跨机（不同主机）互通 | 未验证 |
 | `string` 字段与嵌套消息 | **已验证**（`TrajectoryProbe`：Header + PosePoint[] + string） |
 | 大载荷（点云 / RGB 帧） | 未验证；这是引入 SHM 的前提 |
-| SHM（Cyclone 0.10 走 iceoryx） | 未验证 |
+| SHM（Cyclone 0.10 走 iceoryx） | **已验证**（≥64 KiB 收益显著，见第 5 节） |
 | `partition` 隔离 | 未验证；首期建议用 `ROS_DOMAIN_ID` |
 | `@appendable` / XCDR2 | 未验证；首期固定 `@final` + XCDR1 |
 | QoS 组合（BEST_EFFORT / KEEP_LAST 深度） | 只验证了 RELIABLE + KEEP_LAST 10 |
 
-## 6. 版本前置条件
+## 7. 版本前置条件
 
 | 项 | 要求 | 说明 |
 | --- | --- | --- |
