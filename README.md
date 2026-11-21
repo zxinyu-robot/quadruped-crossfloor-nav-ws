@@ -12,6 +12,8 @@
 | 维护状态 | Active |
 | 验证平台 | Unitree Go2 + Livox Mid-360 |
 | 当前验证 | 云端 vkernel 多楼层 BT 闭环；真机在线建图与规划 |
+| 端侧运行时接缝 | 原生 CycloneDDS 直连，**无桥接节点**；单机双向互通 4/4 通过 |
+| 接缝验证边界 | 构建/契约/互通/QoS/长稳已在原生环境验证；**Humble 容器内运行待验证** |
 | 尚未完成 | 真机跨楼层完整闭环、其他四足平台验证 |
 | 数据集 | Elevator-LIO 数据集不入库（约 18.9 GB） |
 
@@ -43,10 +45,22 @@
 | 任务空间 | `runtime_core/` | 视觉 → 语义观测 → TaskIntent 契约准入 → StateGate → 技能 → Forwarder → 执行反馈 | `motionslam.task_intent.v1` / `motionslam.execution_feedback.v1` |
 | 度量空间 | `src/`、`scripts/` | PCT → BT → SCAN → cmd_vel forwarder → 平台 | `/demo/mission/semantic_goal`、`/demo/mission/event` |
 
-两层接缝是 **DDS（RTPS over UDP）**：`runtime_core` 作为原生 CycloneDDS 参与者直接与导航栈
-通信，不经过任何桥接节点。实测结论（topic 需加 `rt/` 前缀、类型名需 `pkg::msg::dds_::Type_`）
-见 [runtime_core/docs/dds-interop.md](runtime_core/docs/dds-interop.md)。任务运行时不下发速度，
-执行权始终留在度量空间。
+两层接缝是 **DDS（RTPS）**：`runtime_core` 作为原生 CycloneDDS 参与者直接与导航栈通信，
+不经过任何桥接节点。同机可用 iceoryx 共享内存通路，实测同样载荷下 lo 上 UDP 字节从 273 MB
+降到 4 KB。任务运行时不下发速度，执行权始终留在度量空间。
+
+实测记录、踩坑清单与策略调整全部收敛在**一份**文档：
+[runtime_core/docs/dds-interop.md](runtime_core/docs/dds-interop.md)（按时序组织）。
+
+> 该文档记录了本链路最值得记住的一条：**`dds_write` 返回成功不代表数据已交付**。
+> 一次没有建立匹配关系的运行曾产出过看似正常的接收数字，因此现在基准程序内置
+> **Match Gate**（`matched < 1` 直接判 `INVALID` 并拒绝出数），
+> 并区分 `READY` / `MATCHED` / `RECEIVING` / `IDLE` / `DONE` / `NO_DATA` 状态。
+> 修复有效性问题之前得出的四条性能结论已全部撤回重测。
+
+容器化：`docker/Dockerfile` 已加入 DDS 链路依赖（`ros-humble-cyclonedds` 自带 `libddsc`+`idlc`，
+iceoryx 为其硬依赖），`docker/cyclonedds.xml` 已开启同机共享内存；
+进容器后 `./scripts/dev/verify_dds.sh` 一条命令跑完整链路自检。
 
 `runtime_core/` 自带构建与测试（CMake + CTest、pytest），契约常量的单一来源是
 `runtime_core/contracts/runtime_contract.json`：
@@ -164,6 +178,18 @@ Super-LIO → PCT global guidance → Behavior Tree → SCAN local planner
 - [PCT_planner](https://github.com/VectorRobotics/PCT_planner)
 - [unitree_ros2](https://github.com/unitreerobotics/unitree_ros2)
 - [livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2)
+
+## 作者与署名
+
+- **项目主导与系统设计**：zxinyu（zxiangsheng2314@gmail.com）。导航栈、三空间架构、行为树编排、
+  Forwarder 与真机适配层的设计口径与实现由作者主导；云端多楼层闭环与真机在线建图/规划均为本仓自有工作。
+- **原独立仓库并入**：`runtime_core/` 前身为 `Autonomous-Navigation-for-Legged-Robots`，
+  已整体并入本仓并停止独立维护，原仓库的演进过程保留在 `runtime_core/` 的提交历史中。
+- **工程化与实验辅助**：契约单一来源、DDS 类型生成链路、互通/QoS/SHM/长稳实验脚本与记录文档，
+  在 GitHub Copilot 辅助下完成；所有实验结论均可由 `runtime_core/scripts/` 下的脚本重跑复现，
+  未经复现的数字不写入文档。
+- **第三方组件**：Super-LIO、PCT、SCAN-Planner、unitree_ros2、livox_ros_driver2 等版权归各自作者，
+  许可与版本核查见 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
 ## 许可证
 
