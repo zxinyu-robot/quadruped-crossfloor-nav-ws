@@ -75,7 +75,7 @@
 | SHM 实际生效 | 131 MB 载荷：SHM 关 lo 上 UDP 273.6 MB → SHM 开 **4.2 KB** | `scripts/dds_shm_proof.sh` |
 | 长稳 64 KiB @ 10 Hz × 20 min × 4 轮 | 零丢失（11960/11960），p50 **1108–1134 µs**，p95 2026–2064 µs | `scripts/dds_soak_repeat.sh` |
 | 接收退出语义 T4（100+1s+100）× 5 | 5/5 无提前退出，`idle=2000 ms` | `scripts/dds_sub_exit_cases.sh` |
-| `runtime_core` 单元测试 | ctest **2/2**、pytest **91** | `runtime_core/tests/` |
+| `runtime_core` 单元测试 | `pytest` **91** 项；`ctest` **2/2**（需 `-DLEGGED_NAV_BUILD_DDS=ON`，默认 OFF 时为 1/1） | `runtime_core/tests/` |
 | 生成物一致性 | 契约与 DDS 类型 `in sync` | `gen_contract.py --check`、`gen_dds_types.py --check` |
 | CI | `main` 最新 run conclusion = **success** | GitHub Actions |
 
@@ -93,14 +93,20 @@ cd quadruped-crossfloor-nav-ws/runtime_core
 
 python3 scripts/gen_contract.py --check       # 契约生成物同步
 python3 scripts/gen_dds_types.py --check      # DDS 类型生成物同步
-cmake -S . -B build -DLEGGED_NAV_BUILD_TESTS=ON
+cmake -S . -B build                           # LEGGED_NAV_BUILD_TESTS 默认 ON
 cmake --build build -j
-ctest --test-dir build --output-on-failure    # 2/2
+ctest --test-dir build --output-on-failure    # 默认 1/1
 pip install -e ".[dev]" && pytest -q          # 91 项
 ```
 
-编译 `dds/` 下的原生类型支持需要 CycloneDDS（`find_package(CycloneDDS)`），
-未安装时可跳过，上面四步仍可跑通。
+若要一并编译 `dds/` 下的原生类型支持（需要 `find_package(CycloneDDS)` 能找到 `libddsc`）：
+
+```bash
+cmake -S . -B build -DLEGGED_NAV_BUILD_DDS=ON && cmake --build build -j
+ctest --test-dir build --output-on-failure    # 2/2
+```
+
+没有 CycloneDDS 时跳过这段即可，上面四步仍然跑得通。
 
 ### B. 导航栈（Docker + 真机）
 
