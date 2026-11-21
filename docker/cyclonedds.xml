@@ -10,5 +10,11 @@
             </Interfaces>
             <AllowMulticast>spdp</AllowMulticast>
         </General>
+        <!-- 同机 SHM 通路：runtime_core 与导航栈在同一容器内时走 iceoryx，
+             不经 UDP 回环。容器以 --ipc host 运行，/dev/shm 即宿主机 /dev/shm。
+             实测 iceoryx 段需 2.4 GB 量级，宿主机 /dev/shm 不足时会 init 失败。 -->
+        <SharedMemory>
+            <Enable>true</Enable>
+        </SharedMemory>
     </Domain>
 </CycloneDDS>

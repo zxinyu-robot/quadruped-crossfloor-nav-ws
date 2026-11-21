@@ -53,6 +53,29 @@ RUN git clone --depth 1 https://github.com/Livox-SDK/Livox-SDK2.git /tmp/Livox-S
     && cmake --install /tmp/Livox-SDK2/build \
     && rm -rf /tmp/Livox-SDK2
 
+# ---- Layer A: runtime_core 原生 DDS 链路 ----
+# ros-humble-cyclonedds 0.10.5 是自带的开发包，一个 deb 同时提供
+#   include/dds/dds.h   编译所需头文件
+#   bin/idlc            IDL 编译期工具
+#   libddsc.so.0.10.5   运行时库
+# 没有独立的 -dev 包，不要去找。
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-cyclonedds \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- Layer B: 同机共享内存（iceoryx）----
+# iceoryx 三件套已被 Layer A 的 Depends 自动拉取，这里显式列出是把
+# 「运行时必备」写进镜像意图，而不是依赖传递依赖的偶然性：
+#   iceoryx-posh       iox-roudi 守护进程
+#   iceoryx-hoofs      roudi 依赖的通用组件
+#   iceoryx-binding-c  libddsc.so 的 NEEDED 依赖，漏装则 libddsc 直接加载失败
+# 包名与架构兼容性（amd64 / arm64）核实记录见 runtime_core/docker/VERIFY_STATUS.md
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-iceoryx-posh \
+    ros-humble-iceoryx-hoofs \
+    ros-humble-iceoryx-binding-c \
+    && rm -rf /var/lib/apt/lists/*
+
 # ---- DDS 与宇树域 0 原生互通 ----
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ENV CYCLONEDDS_URI=/ws/docker/cyclonedds.xml
