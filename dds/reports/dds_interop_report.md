@@ -1,6 +1,6 @@
 # DDS 互通实验报告
 
-- 时间：2026-11-21T06:30:48+08:00
+- 时间：2026-11-21T12:52:38+08:00
 - 环境：ROS jazzy · rmw_cyclonedds_cpp · domain 0
 - CycloneDDS：ii  ros-jazzy-cyclonedds 0.10.5-1noble.20260225.142613 amd64        Eclipse Cyclone DDS is a very performant and robust open-source DDS implementation.
 - 结论：**4/4 通过**

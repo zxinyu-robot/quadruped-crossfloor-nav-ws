@@ -8,3 +8,10 @@ dist/
 .venv/
 .env*
 !.env.example
+
+# macOS 归档元数据
+._*
+.DS_Store
+
+# DDS 测试运行的自动产物（唯一记录见 docs/dds-interop.md）
+dds/reports/
