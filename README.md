@@ -32,7 +32,7 @@
 - 行为树任务编排与任务运行时。
 - Forwarders 与 Unitree Sport API 控制适配。
 - 三空间模型：Metric、Symbolic、World（见下节）。
-- 云端虚拟设备内核中的 11 航点闭环演示（PCT → BT → SCAN → Forwarder）。
+- 云端虚拟设备内核中的 11 航点闭环演示（BT 调度 → PCT 全局指引 / SCAN 局部规划 → Forwarder）。
 - 真机在线建图与规划；跨楼层真机闭环仍在验证。
 
 ## 三空间架构
@@ -141,7 +141,7 @@ pip install -e ".[dev]" && pytest -q           # 91 项
 ![云端跨楼层闭环演示](docs/media/cross_floor_demo.webp)
 
 - [完整视频](docs/media/cross_floor_demo.mp4)
-- 云端 vkernel 中已跑通多楼层 11 航点 BT 闭环：PCT → BT → SCAN → Forwarder，SubgoalReached 11/11。
+- 云端 vkernel 中已跑通多楼层 11 航点 BT 闭环：BT 调度 → PCT 全局指引 / SCAN 局部规划 → Forwarder，SubgoalReached 11/11。
 
 ### 真机在线与 Elevator-LIO 场景回放
 
