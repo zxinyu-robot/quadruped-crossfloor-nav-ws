@@ -1,0 +1,57 @@
+# runtime_core DDS 最小复现沙箱（**不是部署镜像**）
+#
+# 主线是仓库根的 docker/Dockerfile（ros:humble，含完整导航栈），
+# 进容器后用 ./scripts/dev/verify_dds.sh 验证同一条 DDS 链路。
+# 本文件只解决一件事：不装 Super-LIO / Livox / Foxglove 那一大堆依赖，
+# 也能在几十秒内复现 dds_interop_check / dds_qos_matrix / dds_shm_proof / dds_soak。
+# 基础镜像与主线保持一致（ros:humble），避免出现第二套发行版真理。
+#
+# 构建（构建上下文必须是 runtime_core 根目录）：
+#   docker build -f docker/Dockerfile.dds -t runtime-core-dds:humble .
+#
+# 验证状态：见 docker/VERIFY_STATUS.md，逐层区分「已复算」与「未验证」。
+FROM ros:humble-ros-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ---- Layer A：DDS 基础依赖 ----
+# ros-humble-cyclonedds 0.10.5 是**自带的开发包**：同时提供
+#   include/dds/dds.h   编译所需头文件
+#   bin/idlc            IDL 编译期工具
+#   libddsc.so.0.10.5   运行时库
+# 没有独立的 -dev 包，不要去找。
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake git python3 \
+        ros-humble-cyclonedds \
+        ros-humble-rmw-cyclonedds-cpp \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- Layer B：SHM 基础设施 ----
+# 这三件套其实已被 ros-humble-cyclonedds 的 Depends 自动拉取，
+# 显式列出是为了把「运行时必备」写进镜像意图，而不是靠传递依赖的偶然性。
+#   iceoryx-posh       iox-roudi 守护进程
+#   iceoryx-hoofs      roudi 依赖的通用组件
+#   iceoryx-binding-c  libddsc.so 的 NEEDED 依赖，漏装则 libddsc 直接加载失败
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ros-humble-iceoryx-posh \
+        ros-humble-iceoryx-hoofs \
+        ros-humble-iceoryx-binding-c \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
+    ROS_DOMAIN_ID=0
+
+WORKDIR /opt/runtime_core
+COPY . /opt/runtime_core
+
+# 镜像内即完成四道自检：构建、契约一致性、DDS 类型一致性、C++ 测试。
+# 任何一道不过镜像就构建失败——避免交付一个"看起来能跑"的镜像。
+RUN . /opt/ros/humble/setup.bash \
+    && cmake -S . -B build -DLEGGED_NAV_BUILD_TESTS=ON -DLEGGED_NAV_BUILD_DDS=ON \
+    && cmake --build build -j"$(nproc)" \
+    && ctest --test-dir build --output-on-failure \
+    && python3 scripts/gen_contract.py --check \
+    && python3 scripts/gen_dds_types.py --check
+
+ENTRYPOINT ["/opt/runtime_core/docker/entrypoint.sh"]
+CMD ["selftest"]

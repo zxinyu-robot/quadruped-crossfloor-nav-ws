@@ -1,0 +1,80 @@
+{
+  "generator": "gen_dds_types.py",
+  "idlc": "idlc (Eclipse Cyclone DDS) 0.10.5",
+  "messages": {
+    "builtin_interfaces/msg/Time": {
+      "source_idl": "builtin_interfaces/msg/Time.idl",
+      "source_sha256": "e2b4d6bf6efed78649a3704b90da97ad18bc70ad58b1d04de4b1ba80771eb3ba",
+      "transformed_sha256": "40c5343a8dfbe121334e744aa0f7560f85e2885e95ee0d9a1888cccf6b15e04f",
+      "generated": {
+        "c": "4ae8391205ab66b74e928c9d4d8e18bf3999b35c17292ebee9181d14b13bc242",
+        "h": "18bf6fba9d1f21ba776a9f576e6e17ea45b9e513ef6c4cd5c0d0d6d4ca746074"
+      },
+      "m_typename": "builtin_interfaces::msg::dds_::Time_",
+      "m_flagset": "DDS_TOPIC_FIXED_SIZE | DDS_TOPIC_XTYPES_METADATA"
+    },
+    "motionslam_msgs/msg/PosePoint": {
+      "source_idl": "motionslam_msgs/msg/PosePoint.idl",
+      "source_sha256": "991075c30af57f8558e534dd0a0ad9924721b7bd0960a87b59a7f9d23e247dfc",
+      "transformed_sha256": "5b3db438240ba70cfab4333d3ec603d35bbda1e121c4bd10a2b6be31e54fac51",
+      "generated": {
+        "c": "e3d173c86a2d35cb11a034b141ce754773dbe30e865853c12da538a48e6a70f5",
+        "h": "e20f8055d9dcfef2569f8d40bd03a7e664a2506f46363cabe94fdcf3bcd82890"
+      },
+      "m_typename": "motionslam_msgs::msg::dds_::PosePoint_",
+      "m_flagset": "DDS_TOPIC_FIXED_SIZE | DDS_TOPIC_XTYPES_METADATA"
+    },
+    "motionslam_msgs/msg/RuntimeEnvelope": {
+      "source_idl": "motionslam_msgs/msg/RuntimeEnvelope.idl",
+      "source_sha256": "756b156fddf3f72fe171a293b80ac45d1ef56d38a833498946e299bfc164a571",
+      "transformed_sha256": "1047cacc2178c6751215980cf111ab8cb944b925a508b3e8dbc0661f615e06fa",
+      "generated": {
+        "c": "1b0cdfa2935a56a6ebd38841d2aa4f3eeece868a8d93918a6dfa00ce12375aa2",
+        "h": "7c30c022e3abe560326116c8227befa91d2253eaa67cc6bf84a5e109ebe9a337"
+      },
+      "m_typename": "motionslam_msgs::msg::dds_::RuntimeEnvelope_",
+      "m_flagset": "DDS_TOPIC_XTYPES_METADATA"
+    },
+    "motionslam_msgs/msg/TrajectoryProbe": {
+      "source_idl": "motionslam_msgs/msg/TrajectoryProbe.idl",
+      "source_sha256": "bd80f81a8dc05de61642e5ff8a22c1431c2dc0af140f241e5a53dc501a56a594",
+      "transformed_sha256": "a82903b2d1eec8ef9028678a7fa57831afb4eccf1629e95a7b7037b778f7f511",
+      "generated": {
+        "c": "4e13a1672ddba3e86ab0d57c172851797147d3b9d2dbc16ab84d28b6f112b50b",
+        "h": "f2cf821b4d3abb79b78b312b2970141ce51afba5cf52c2efcb45359a4f72bc17"
+      },
+      "m_typename": "motionslam_msgs::msg::dds_::TrajectoryProbe_",
+      "m_flagset": "DDS_TOPIC_XTYPES_METADATA"
+    },
+    "std_msgs/msg/Header": {
+      "source_idl": "std_msgs/msg/Header.idl",
+      "source_sha256": "ddec84446680542733e75a1416f03b106f015c02b6a1dc5e5443cd36f8ae8f4b",
+      "transformed_sha256": "e09c1365c671efa429e4f43b4ccb65f615cd4e989f26a2895ecd87fde0709080",
+      "generated": {
+        "c": "ce1fdc4c99dccdb68f6fc5b2b70b80461f08bf45560afb75fefb18b273f99805",
+        "h": "4119397683504f282a07a29b980f29a2709f40314b07cd8944a22f2964532942"
+      },
+      "m_typename": "std_msgs::msg::dds_::Header_",
+      "m_flagset": "DDS_TOPIC_XTYPES_METADATA"
+    }
+  },
+  "order": [
+    "builtin_interfaces/msg/Time",
+    "motionslam_msgs/msg/PosePoint",
+    "motionslam_msgs/msg/RuntimeEnvelope",
+    "motionslam_msgs/msg/TrajectoryProbe",
+    "std_msgs/msg/Header"
+  ],
+  "generated_files": [
+    "gen/builtin_interfaces/msg/Time.c",
+    "gen/builtin_interfaces/msg/Time.h",
+    "gen/motionslam_msgs/msg/PosePoint.c",
+    "gen/motionslam_msgs/msg/PosePoint.h",
+    "gen/motionslam_msgs/msg/RuntimeEnvelope.c",
+    "gen/motionslam_msgs/msg/RuntimeEnvelope.h",
+    "gen/motionslam_msgs/msg/TrajectoryProbe.c",
+    "gen/motionslam_msgs/msg/TrajectoryProbe.h",
+    "gen/std_msgs/msg/Header.c",
+    "gen/std_msgs/msg/Header.h"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "$comment": "端侧运行时契约的单一是非来源。修改后运行 python3 scripts/gen_contract.py 重新生成 C++ / Python 常量；CI 用 gen_contract.py --check 校验同步。",
+  "version": 1,
+  "task_intent": {
+    "schema": "motionslam.task_intent.v1",
+    "feedback_schema": "motionslam.execution_feedback.v1",
+    "allowed_platforms": ["unitree_go2_edu", "unitree_go2"],
+    "allowed_skills": ["Navigate", "ReturnHome", "ExploreFrontier", "Stand", "Stop"],
+    "forbidden_control_keys": [
+      "cmd_vel",
+      "/cmd_vel",
+      "twist",
+      "Twist",
+      "initial_path",
+      "/initial_path",
+      "/motion/command"
+    ],
+    "normalization": {
+      "trim_strings": true,
+      "coerce_non_string": false
+    },
+    "skills": {
+      "Navigate": {"kind": "navigate_to", "timeout_s": 120.0},
+      "ReturnHome": {"kind": "return_home", "timeout_s": 180.0},
+      "ExploreFrontier": {
+        "kind": "explore",
+        "timeout_s": 300.0,
+        "params": {"strategy": "frontier"}
+      },
+      "Stand": {"kind": "stand", "timeout_s": 5.0},
+      "Stop": {"kind": "stop", "timeout_s": 2.0}
+    }
+  }
+}

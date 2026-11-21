@@ -1,0 +1,21 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from motionslam_msgs/msg/RuntimeEnvelope.msg
+// generated code does not contain a copyright notice
+
+
+module motionslam_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "端侧运行时 ⇄ 导航栈 的 DDS 信封（自定义类型，单机 Cyclone DDS + SHM）" "\n"
+      "payload 为 UTF-8 JSON 字节；channel_id 见 docs/架构/运行时DDS链路.md")
+    struct RuntimeEnvelope {
+      uint32 schema_version;
+
+      uint32 channel_id;
+
+      sequence<uint8> payload;
+
+      int64 stamp_ns;
+    };
+  };
+};

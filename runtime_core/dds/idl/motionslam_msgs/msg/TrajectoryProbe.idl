@@ -1,0 +1,3 @@
+#include "motionslam_msgs/msg/PosePoint.idl"
+#include "std_msgs/msg/Header.idl"
+module motionslam_msgs { module msg { module dds_ { struct TrajectoryProbe_ { std_msgs::msg::dds_::Header_ header; string proposal_id; string model_id; sequence <double> stamps_s; sequence <motionslam_msgs::msg::dds_::PosePoint_> points; uint8 kind; boolean ok; }; }; }; };

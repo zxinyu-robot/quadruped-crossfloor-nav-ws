@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" font-family="Noto Sans CJK SC, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#333"/>
+    </marker>
+    <marker id="aD" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#2a6f2a"/>
+    </marker>
+  </defs>
+  <style>
+    .ttl{font-size:15px;font-weight:bold;fill:#223}
+    .lif{stroke:#9ab;stroke-width:1.2;stroke-dasharray:4,4}
+    .ent{fill:#fff;stroke:#4a6fa5;stroke-width:1.2}
+    .en{font-size:12px;font-weight:bold;fill:#334}
+    .msg{stroke:#333;stroke-width:1.3;fill:none;marker-end:url(#a)}
+    .ret{stroke:#2a6f2a;stroke-width:1.3;fill:none;stroke-dasharray:5,3;marker-end:url(#aD)}
+    .m{font-size:11.5px;fill:#333}
+    .n{font-size:10px;fill:#889}
+    .act{fill:#d9e6f5;stroke:#4a6fa5;stroke-width:0.8}
+    .rej{fill:#b03030;font-size:11px}
+  </style>
+
+  <text x="20" y="26" class="ttl">数据流转时序图 — RGB → VLM → 意图 → 门控 → 执行 → 反馈（一步闭环）</text>
+
+  <!-- lifelines -->
+  <line x1="80"  y1="60" x2="80"  y2="580" class="lif"/>
+  <line x1="270" y1="60" x2="270" y2="580" class="lif"/>
+  <line x1="460" y1="60" x2="460" y2="580" class="lif"/>
+  <line x1="650" y1="60" x2="650" y2="580" class="lif"/>
+  <line x1="840" y1="60" x2="840" y2="580" class="lif"/>
+
+  <rect x="30"  y="40" width="100" height="24" class="ent"/><text x="44" y="56" class="en">RGB 数据源</text>
+  <rect x="205" y="40" width="130" height="24" class="ent"/><text x="215" y="56" class="en">VLM 后端</text>
+  <rect x="395" y="40" width="130" height="24" class="ent"/><text x="410" y="56" class="en">VisionLoop</text>
+  <rect x="585" y="40" width="130" height="24" class="ent"/><text x="600" y="56" class="en">TaskRuntime</text>
+  <rect x="775" y="40" width="130" height="24" class="ent"/><text x="795" y="56" class="en">Forwarder</text>
+
+  <!-- activation bars -->
+  <rect x="264" y="120" width="12" height="120" class="act"/>
+  <rect x="454" y="240" width="12" height="110" class="act"/>
+  <rect x="644" y="300" width="12" height="230" class="act"/>
+  <rect x="834" y="450" width="12" height="60" class="act"/>
+
+  <!-- messages -->
+  <line x1="80" y1="100" x2="268" y2="100" class="msg"/>
+  <text x="88" y="94" class="m">① frame(bytes/path) + task_prompt + frame_id</text>
+
+  <line x1="270" y1="140" x2="270" y2="160" class="msg"/>
+  <text x="280" y="152" class="m">② observe() — stub 预设 / Qwen2.5-VL-7B 推理（懒加载）</text>
+
+  <line x1="270" y1="190" x2="462" y2="190" class="msg"/>
+  <text x="278" y="184" class="m">③ SemanticObservation{scene_class, confidence, landmarks, hazards, target_visible}</text>
+
+  <line x1="460" y1="230" x2="460" y2="250" class="msg"/>
+  <text x="470" y="242" class="m">④ observation_to_intent：置信度&lt;阈值→不发意图；hazards→Stop；target_visible→Navigate</text>
+
+  <line x1="460" y1="290" x2="648" y2="290" class="msg"/>
+  <text x="468" y="284" class="m">⑤ submit(TaskIntent JSON)</text>
+
+  <line x1="650" y1="320" x2="650" y2="350" class="msg"/>
+  <text x="660" y="335" class="m">⑥ validate_task_intent：schema/平台/禁区/禁控字段</text>
+  <text x="660" y="350" class="rej">→ 失败即 REJECT_* 反馈，不下发</text>
+
+  <line x1="650" y1="375" x2="650" y2="400" class="msg"/>
+  <text x="660" y="385" class="m">⑦ admission（幂等/抢占/忙拒）→ StateGate（有效期/版本/置信度）</text>
+  <text x="660" y="400" class="rej">→ 失效 HOLDING + SAFETY_INTERLOCK</text>
+
+  <line x1="650" y1="430" x2="838" y2="430" class="msg"/>
+  <text x="658" y="424" class="m">⑧ 逐技能 ActionStep：execute(step, deadline_ns)</text>
+
+  <line x1="840" y1="470" x2="652" y2="470" class="ret"/>
+  <text x="660" y="464" class="m">⑨ StepResult{ok, detail, final_state}</text>
+
+  <line x1="650" y1="510" x2="462" y2="510" class="ret"/>
+  <text x="470" y="504" class="m">⑩ ExecutionFeedback{state, event, progress, detail}</text>
+
+  <line x1="460" y1="540" x2="80" y2="540" class="ret"/>
+  <text x="90" y="534" class="m">⑪ VisionDecision 留痕：observation + intent + feedback + reason（可审计）</text>
+
+  <text x="30" y="600" class="n">注：模型与观测层不产生 cmd_vel/轨迹等底层字段；每帧重复 ①–⑪；task_id 幂等防止重复派发。</text>
+</svg>

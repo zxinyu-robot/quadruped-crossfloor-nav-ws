@@ -1,0 +1,1 @@
+module motionslam_msgs { module msg { module dds_ { struct PosePoint_ { double x; double y; double z; double yaw_deg; }; }; }; };

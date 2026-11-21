@@ -29,3 +29,26 @@ jobs:
           # test_semantic_mission.py 依赖 rclpy，云端容器内跑；CI 只跑纯 Python 用例
           python -m pytest src/motionslam_bringup/test \
             --ignore=src/motionslam_bringup/test/test_semantic_mission.py -q
+
+  runtime_core:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 契约与 DDS 生成物同步
+        run: |
+          python3 runtime_core/scripts/gen_contract.py --check
+          python3 runtime_core/scripts/gen_dds_types.py --check
+      - name: C++ 契约测试（不依赖 ROS）
+        run: |
+          cmake -S runtime_core -B build/runtime_core -DLEGGED_NAV_BUILD_TESTS=ON
+          cmake --build build/runtime_core -j
+          ctest --test-dir build/runtime_core --output-on-failure
+      - name: Python 对照实现测试
+        run: |
+          cd runtime_core
+          python -m pip install -e ".[dev]"
+          python -m pytest -q
+          ruff check src tests
