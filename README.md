@@ -47,7 +47,12 @@
 
 两层接缝是 **DDS（RTPS）**：`runtime_core` 作为原生 CycloneDDS 参与者直接与导航栈通信，
 不经过任何桥接节点。同机可用 iceoryx 共享内存通路，实测同样载荷下 lo 上 UDP 字节从 273 MB
-降到 4 KB。任务运行时不下发速度，执行权始终留在度量空间。
+降到 4 KB。
+
+**这条接缝只承载符号量**（`TaskIntent` / `ExecutionFeedback` / mission event）。按三空间约束
+（OS0：翻译可跨空间，执行只发生在度量空间），它不得成为几何量或速度指令的通路；语义模型本体
+在世界空间，其产出的意图进入符号空间，而 **adapter-BT 是符号 → 度量的唯一接缝**。
+任务运行时不下发速度，执行权始终留在度量空间。
 
 实测记录、踩坑清单与策略调整全部收敛在**一份**文档：
 [runtime_core/docs/dds-interop.md](runtime_core/docs/dds-interop.md)（按时序组织）。
