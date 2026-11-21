@@ -59,7 +59,7 @@ run_case() {  # label size count uri
     local sublog
     sublog=$(mktemp)
     ( CYCLONEDDS_URI="$uri" "$BENCH" --role sub --count "$count" --size "$size" \
-        --timeout-ms 20000 >"$sublog" 2>&1 & )
+        --idle-ms 20000 >"$sublog" 2>&1 & )
     sleep 4   # 等发现完成（SPDP 周期）
     printf '{"case": "%s", ' "$label"
     CYCLONEDDS_URI="$uri" "$BENCH" --role pub --count "$count" --size "$size" 2>/dev/null | tr -d '\n'
