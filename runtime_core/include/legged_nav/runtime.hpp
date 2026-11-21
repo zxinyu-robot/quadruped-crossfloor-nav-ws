@@ -47,7 +47,7 @@ class TaskRuntime {
     explicit TaskRuntime(
         Forwarder& forwarder, IntentOptions opt = {},
         std::map<std::string, std::vector<std::pair<double, double>>> forbidden_areas = {},
-        StateGate gate = {}, std::function<long long()> clock_ns = now_ns);
+        StateGate gate = StateGate{}, std::function<long long()> clock_ns = now_ns);
 
     /// 接收 TaskIntent JSON；返回最新 ExecutionFeedback（终态或受理事件）。
     std::map<std::string, std::string> submit(const std::string& intent_json,
