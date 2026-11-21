@@ -1,7 +1,7 @@
 # runtime_core：端侧任务运行时
 
 > 本目录是 [quadruped-crossfloor-nav-ws](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws)
-> 的一部分。原独立仓库 `Autonomous-Navigation-for-Legged-Robots` 已并入本仓并停止独立维护；
+> 的符号平面，经 `feat/runtime-core-overlay` 分支线并入 `main`；
 > 许可证随仓库根 [LICENSE](../LICENSE)（MIT）。
 
 面向四足机器人端侧导航运行时，提供从视觉语义观测、任务意图准入、技能编排到执行反馈的闭环。
@@ -16,7 +16,7 @@
 
 ## 演示
 
-原独立仓库的 ARKitScenes 回放视频已随迁移下线，将由本仓重新录制的整体演示替代
+本目录没有单独的视频，整体演示见仓库根 [README](../README.md) 的「演示」一节
 （视觉意图 → TaskIntent → 导航栈 → 执行反馈 的完整链路）。
 
 回放脚本仍在 [`scripts/e2e_arkitscenes_awq.py`](scripts/e2e_arkitscenes_awq.py) 与
