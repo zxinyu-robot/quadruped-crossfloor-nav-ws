@@ -87,14 +87,13 @@
 
 ## 端侧运行时（runtime_core/）
 
-本仓包含两层：度量空间执行栈 + ROS-free 的端侧任务运行时 `runtime_core/`。
 `runtime_core/` 原为独立仓库 `Autonomous-Navigation-for-Legged-Robots`，
-**已并入本仓并停止独立维护**（该仓库仅保留归档说明）：
+**已并入本仓并停止独立维护**（该仓库仅保留归档说明）。它落在符号空间，与 BT 编排同层：
 
-| 层 | 位置 | 负责 | 契约 / 接口 |
+| 空间 | 位置 | 负责 | 契约 / 接口 |
 | --- | --- | --- | --- |
-| 任务空间 | `runtime_core/` | 视觉 → 语义观测 → TaskIntent 契约准入 → StateGate → 技能 → Forwarder → 执行反馈 | `motionslam.task_intent.v1` / `motionslam.execution_feedback.v1` |
-| 度量空间 | `src/`、`scripts/` | PCT → BT → SCAN → cmd_vel forwarder → 平台 | `/demo/mission/semantic_goal`、`/demo/mission/event` |
+| **符号空间** | `runtime_core/`、`src/motionslam_bringup`、`runtime/task_runtime` | 视觉 → 语义观测 → TaskIntent 契约准入 → StateGate → 技能编排与派发 → 执行反馈 | `motionslam.task_intent.v1` / `motionslam.execution_feedback.v1` |
+| **度量空间** | `src/`（PCT / SCAN / Forwarders）、`scripts/` | 全局指引 → 局部连续规划 → cmd_vel forwarder → 平台 | `/demo/mission/semantic_goal`、`/demo/mission/event` |
 
 两层接缝是 **DDS（RTPS）**：`runtime_core` 作为原生 CycloneDDS 参与者直接与导航栈通信，
 不经过任何桥接节点。同机可用 iceoryx 共享内存通路，实测同样载荷下 lo 上 UDP 字节从 273 MB
