@@ -11,10 +11,13 @@
 | --- | --- |
 | 维护状态 | Active |
 | 验证平台 | Unitree Go2 + Livox Mid-360 |
-| 当前验证 | 云端 vkernel 多楼层 BT 闭环；真机在线建图与规划 |
+| **度量空间** | 已实现并验证：云端 vkernel 多楼层 BT 闭环 11/11；真机在线建图与规划 |
+| **符号空间** | 有骨架：BT 编排 + 任务契约（`TaskIntent` / `ExecutionFeedback`），缺「拒绝 / 策略回放」的硬机制 |
+| **世界空间** | **空层**：仅 `/demo/mission/semantic_goal` 意图入口；VLM、因果地图、多机意图不在本仓 |
+| **③ 数据交互** | 最弱：`session` / `context_generation` 有约定，无代码强制 |
 | 端侧运行时接缝 | 原生 CycloneDDS 直连，**无桥接节点**；单机双向互通 4/4 通过 |
 | 接缝验证边界 | 构建/契约/互通/QoS/长稳已在原生环境验证；**Humble 容器内运行待验证** |
-| 尚未完成 | 真机跨楼层完整闭环、其他四足平台验证 |
+| 尚未完成 | 真机跨楼层完整闭环、其他四足平台验证、世界侧禁速度的强制机制 |
 | 数据集 | Elevator-LIO 数据集不入库（约 18.9 GB） |
 
 ## 项目简介
@@ -28,11 +31,28 @@
 - 度量级定位、全局与局部规划。
 - 行为树任务编排与任务运行时。
 - Forwarders 与 Unitree Sport API 控制适配。
-- 三空间模型：Metric、Symbolic、World。
+- 三空间模型：Metric、Symbolic、World（见下节）。
 - 云端虚拟设备内核中的 11 航点闭环演示（PCT → BT → SCAN → Forwarder）。
 - 真机在线建图与规划；跨楼层真机闭环仍在验证。
 
-执行约束：数据可以跨空间翻译，但执行只发生在度量空间；世界空间不得直接下发速度。完整定义见 [三空间架构](docs/架构/架构_端侧系统架构.md)。
+## 三空间架构
+
+```text
+世界空间  World     语音 / VLM / 因果地图 / 上游世界模型 / 仿真 / 多机意图
+    ↕ ② 决策翻译（任务、拒绝、策略回放；禁止下发速度）
+符号空间  Symbolic  技能名 / 模式 / 事件 / 观测标签 / session·代数 / Policy
+    ↕ ① 行为翻译（占据→可通行/可探索/可归档；轨迹→技能结果）
+度量空间  Metric    点云·位姿·tomogram·B-spline·Sport / 本体控制器
+    ↕ ③ 数据交互（版本化物料或观测 ↔ 世界；不是原始路径 dump）
+```
+
+| 翻译面 | 输入 → 输出 | 硬约束 |
+|--------|------------|--------|
+| **① 行为翻译** | 占据 / 轨迹 → 可通行 / 技能结果 | 失败回程使用稳定类型（`reached` / `stuck` / `plan_fail` / `link_lost`），不是日志字符串 |
+| **② 决策翻译** | 任务 / 拒绝 / 策略回放 | **禁止下发速度** |
+| **③ 数据交互** | 版本化物料或观测 | **不是原始路径 dump** |
+
+**OS0**：数据可以跨空间翻译，**执行只发生在度量空间**。完整定义与编号对应（`OS1` = ①、`OS2` = ②、`OS3` = ③）见 [三空间架构](docs/架构/架构_端侧系统架构.md)。
 
 ## 端侧运行时（runtime_core/）
 
@@ -49,13 +69,8 @@
 不经过任何桥接节点。同机可用 iceoryx 共享内存通路，实测同样载荷下 lo 上 UDP 字节从 273 MB
 降到 4 KB。
 
-**这条接缝只承载符号量**（`TaskIntent` / `ExecutionFeedback` / mission event）。按三空间约束
-（OS0：翻译可跨空间，执行只发生在度量空间），它不得成为几何量或速度指令的通路。
-
-三层各有明确归属：**世界空间**装语音、VLM、因果地图、上游世界模型、仿真与多机意图；
-**符号空间**装技能名、模式、事件、观测标签、session·代数与 Policy；**度量空间**装点云、位姿、
-tomogram、B-spline、Sport 与本体控制器。世界侧的内容必须经 **② 决策翻译**变成符号意图，
-才能进入本接缝；**① 行为翻译**负责占据→可通行、轨迹→技能结果。
+**这条接缝只承载符号量**（`TaskIntent` / `ExecutionFeedback` / mission event）。世界侧的内容必须经
+**② 决策翻译**变成符号意图，才能进入本接缝；它**不得**成为几何量或速度指令的通路。
 任务运行时不下发速度，执行权始终留在度量空间。
 
 实测记录、踩坑清单与策略调整全部收敛在**一份**文档：
@@ -156,13 +171,26 @@ Super-LIO → PCT global guidance → Behavior Tree → SCAN local planner
 
 ## 项目结构与边界
 
-- `motionslam_bringup`：行为树编排。
+按三空间归位，每层标注实现与状态：
+
+**度量空间（实现最实）**
+
+- `scan_planner`（SCAN-Planner）：tomogram、B-spline 局部连续路径规划。
+- Super-LIO：位姿估计；PCT：全局路径指引。
+- Forwarders：控制指令与 Unitree Sport API 适配。
+- `config/`：真机与云端参数基线（真机以 `config/demo_scan_planner.yaml` 为准）。
+
+**符号空间（骨架完整）**
+
+- `motionslam_bringup`：行为树编排与原子技能表。
 - `runtime/task_runtime`：ROS 侧任务运行时。
-- `runtime_core/`：ROS-free 端侧任务运行时（TaskIntent 契约/准入/门控/技能/Forwarder），见上节。
-- Forwarders：控制指令和 Sport API 适配。
-- `config/`：真机与云端参数基线。
-- `scripts/`：构建、运维和导航入口。
-- `docs/`：架构、演示和验证说明。
+- `runtime_core/`：ROS-free 端侧任务运行时（TaskIntent 契约 / 准入 / 门控 / 技能 / Forwarder）。
+- `scripts/`：构建、运维与导航入口。
+
+**世界空间（仅接口）**
+
+- `/demo/mission/semantic_goal`：意图入口；`/demo/mission/event`：事件回程。
+- VLM、因果地图、上游世界模型、多机意图均不在本仓；仿真在云端 `vkernel_sim`。
 
 工程集成包括 Super-LIO、PCT、SCAN-Planner、unitree_ros2 和 livox_ros_driver2；第三方代码和许可证见 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
@@ -175,7 +203,7 @@ Super-LIO → PCT global guidance → Behavior Tree → SCAN local planner
 
 ## 关联项目
 
-- [ForkSpatial-Runtime-Engine](https://github.com/zxinyu-robot/ForkSpatial-Runtime-Engine)：空间状态契约与运行时。
+- [ForkSpatial-Runtime-Engine](https://github.com/zxinyu-robot/ForkSpatial-Runtime-Engine)：通用空间平台，提供 ① 行为翻译 / ② 决策翻译 / ③ 数据交互 三个面的实现骨架，世界侧与度量侧均可替换。
 - [legged-navigation-runtime](https://github.com/zxinyu-robot/legged-navigation-runtime)：定位故障恢复与多楼层导航。
 - [swarm-adapter-foundation](https://github.com/zxinyu-robot/swarm-adapter-foundation)：多机状态和通信策略基础设施。
 - [CleanRobot-Sim2Real-skill](https://github.com/zxinyu-robot/CleanRobot-Sim2Real-skill)：复合清洁机器人操作技能学习。
