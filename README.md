@@ -4,7 +4,7 @@
 [![ROS 2](https://img.shields.io/badge/ROS%202-Humble-22314E.svg)](https://docs.ros.org/en/humble/)
 
 > 端侧自主导航运行时：**符号层任务运行时 + 度量层导航执行栈**，两侧以原生 DDS 直连，无桥接节点。
-> 本仓由两个仓库合并而成——`MotionSLAM_ws`（导航栈）与 `Autonomous-Navigation-for-Legged-Robots`（端侧任务运行时，现为 `runtime_core/`，已停止独立维护）。
+> 两个平面都在本仓内演进：导航执行栈是 `main` 主干，端侧任务运行时经 `feat/runtime-core-overlay` 分支线并入 `main`，代码位于 `runtime_core/`。
 
 ## 项目定位
 
@@ -14,7 +14,7 @@
 - **度量平面**（导航执行栈）：Super-LIO 位姿 → PCT 全局指引 → SCAN 局部连续规划 → Forwarders → Sport API → Go2
 - **接缝**：原生 CycloneDDS 直连（同机可走 iceoryx 共享内存），**只承载符号量**
 
-**为什么合并**：任务运行时与导航栈原本是两个仓库、靠 TCP 薄转发器连接，接缝不可验。合并后两侧能在同一容器、同一 Domain 内直连，接缝才有可复现的测试。
+**为什么收在同一仓**：任务运行时与导航栈最初靠 TCP 薄转发器连接，接缝不可验。两条分支线合到 `main` 后，两侧在同一容器、同一 Domain 内直连，接缝才有可复现的测试。
 
 **明确不做**：端侧大模型实时推理；从世界侧下发速度；多机协同（在关联仓）。
 
@@ -23,7 +23,7 @@
 ## 架构：两个平面一条接缝
 
 ```text
-┌─ 符号平面（原 Autonomous-Navigation-for-Legged-Robots，现 runtime_core/）─────────┐
+┌─ 符号平面（runtime_core/）──────────────────────────────────────────────────────┐
 │  语义观测 → TaskIntent 契约准入 → StateGate → 技能编排 → Forwarder → 执行反馈    │
 │  契约单一来源 contracts/runtime_contract.json；.msg → IDL → idlc 类型确定性生成  │
 └───────────────────────────────┬─────────────────────────────────────────────────┘
@@ -59,17 +59,17 @@
 
 ## 技术组成
 
-| 类别 | 组件 | 来源 | 用途 |
+| 类别 | 组件 | 本仓位置 | 用途 |
 | --- | --- | --- | --- |
-| 符号运行时 | `runtime_core/`（C++20 + Python 对照实现，ROS-free） | 原独立仓 | 契约准入、门控、技能编排、反馈 |
-| 编排 | `motionslam_bringup`（BT）· `runtime/task_runtime` | 导航栈 | 任务调度与原子技能表 |
-| 通信接缝 | CycloneDDS 0.10.5 · iceoryx（同机 SHM） | 合并后新增 | 两平面直连，无桥接 |
-| 类型链路 | rosidl 导出 → `transform_rosidl_idl.py` → `idlc` | 合并后新增 | `.msg` 单一来源，生成物可校验 |
-| 定位 | Super-LIO · Livox Mid-360 | 导航栈 | 位姿估计 |
-| 规划 | PCT_planner（全局）· SCAN-Planner（tomogram + B-spline 局部） | 导航栈 | 全局指引与连续局部规划 |
-| 本体 | unitree_ros2 · Forwarders · Sport API | 导航栈 | 控制适配与硬件驱动 |
-| 构建与部署 | CMake · CTest · pytest · colcon · Docker（host 网络） | 两者共用 | 端侧容器化 |
-| 工具 | Foxglove Bridge · Open3D | 导航栈 | 可视化；Elevator-LIO 场景回放 |
+| 符号运行时 | `runtime_core/`（C++20 + Python 对照实现，ROS-free） | 本仓分支线 | 契约准入、门控、技能编排、反馈 |
+| 编排 | `motionslam_bringup`（BT）· `runtime/task_runtime` | 本仓主干 | 任务调度与原子技能表 |
+| 通信接缝 | CycloneDDS 0.10.5 · iceoryx（同机 SHM） | 本仓接缝工程 | 两平面直连，无桥接 |
+| 类型链路 | rosidl 导出 → `transform_rosidl_idl.py` → `idlc` | 本仓接缝工程 | `.msg` 单一来源，生成物可校验 |
+| 定位 | Super-LIO · Livox Mid-360 | 本仓主干 | 位姿估计 |
+| 规划 | PCT_planner（全局）· SCAN-Planner（tomogram + B-spline 局部） | 本仓主干 | 全局指引与连续局部规划 |
+| 本体 | unitree_ros2 · Forwarders · Sport API | 本仓主干 | 控制适配与硬件驱动 |
+| 构建与部署 | CMake · CTest · pytest · colcon · Docker（host 网络） | 主干 + 分支线 | 端侧容器化 |
+| 工具 | Foxglove Bridge · Open3D | 本仓主干 | 可视化；Elevator-LIO 场景回放 |
 
 第三方版本与许可核查见 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
@@ -188,7 +188,7 @@ export EDGE_HOST=<边端 IP>         # 可选；不用边端上行可不设
 ## 作者与署名
 
 - **主导与系统设计**：zxinyu（zxiangsheng2314@gmail.com）——导航栈、三空间架构、行为树编排、端侧任务运行时、Forwarder 与真机适配层。
-- **仓库合并**：`Autonomous-Navigation-for-Legged-Robots` 已整体并入本仓 `runtime_core/` 并停止独立维护，原演进历史保留在子目录提交记录中；本仓由 `MotionSLAM_ws` 更名而来，ROS 包与脚本沿用 `motionslam` 前缀。
+- **分支线归并**：端侧任务运行时经 `feat/runtime-core-overlay` 分支线并入 `main`（PR #19），代码位于 `runtime_core/`，演进历史见本仓提交记录；本仓由 `MotionSLAM_ws` 更名而来，ROS 包与脚本沿用 `motionslam` 前缀。
 - **工程化与实验辅助**：契约单一来源、DDS 类型生成链路、契约/DDS/长稳实验脚本与记录文档在 GitHub Copilot 辅助下完成；所有结论可由 `runtime_core/scripts/` 与 `scripts/` 重跑复现，未经复现的数字不写入文档。
 - **关联**：[ForkSpatial-Runtime-Engine](https://github.com/zxinyu-robot/ForkSpatial-Runtime-Engine)（通用空间平台，提供 ①②③ 三个翻译面的实现骨架）、[legged-navigation-runtime](https://github.com/zxinyu-robot/legged-navigation-runtime)、[swarm-adapter-foundation](https://github.com/zxinyu-robot/swarm-adapter-foundation)。
 - **参考**：[Super-LIO](https://github.com/Liansheng-Wang/Super-LIO)、[SCAN-Planner](https://github.com/wuyi2121/SCAN-Planner)、[PCT_planner](https://github.com/VectorRobotics/PCT_planner)、[unitree_ros2](https://github.com/unitreerobotics/unitree_ros2)、[livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2)。
