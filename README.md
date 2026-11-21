@@ -54,6 +54,37 @@
 
 **OS0**：数据可以跨空间翻译，**执行只发生在度量空间**。完整定义与编号对应（`OS1` = ①、`OS2` = ②、`OS3` = ③）见 [三空间架构](docs/架构/架构_端侧系统架构.md)。
 
+## 核心运行流程
+
+一次完整闭环要跨三个空间。关键约束：**符号空间只调度技能，不调度折线点**；几何计算全部留在度量空间。
+
+```text
+[世界空间]  边端任务 JSON / 探索模式（两种意图源，共用同一技能表与同一度量内核）
+                │ ② 决策翻译：TaskIntent 契约准入 → StateGate
+                ▼
+[符号空间]  BT 编排 → 选技能（ExploreFrontier / Navigate）→ 目标与约束下发
+                │ ① 行为翻译：技能 → 度量目标（几何量不得回写符号面）
+                ▼
+[度量空间]  Super-LIO 位姿 → PCT 全局指引 → SCAN 局部连续规划 → Forwarders → Sport API → Go2
+                │ ① 行为翻译回程：占据 / 轨迹 → 技能终态
+                ▼
+[符号空间]  reached / stuck / plan_fail / link_lost → 恢复阶梯 → 终态判定
+```
+
+**单次 `Navigate` 技能内部的度量侧数据流**（即上面第三行的展开，不是全局串联顺序）：
+
+1. **Super-LIO** 提供位姿估计。
+2. **PCT** 提供全局路径指引，作为该技能的全局约束。
+3. **SCAN** 在 tomogram 上做局部连续路径规划（B-spline）。
+4. **Forwarders** 把路径适配为控制指令。
+5. **Unitree Sport APIs** 驱动 Go2。
+
+**三条容易搞错的地方**：
+
+- **BT 不是 SCAN 的前一级，而是调度者**：BT 选技能、盯子目标与超时；PCT / SCAN 是技能内部的度量算子。把它们画成一条直线会掩盖「失败回哪一层重决策」这件事。
+- **回程只回技能终态**（① 行为翻译），不回折线点。折线是度量空间的瞬时产物，出了度量空间就没有意义。
+- **物料上行走 ③**（点云 / BEV / Token 带 `session` / `context_generation`），与执行回程是两条独立的通路，不要混成一条。
+
 ## 端侧运行时（runtime_core/）
 
 本仓包含两层：度量空间执行栈 + ROS-free 的端侧任务运行时 `runtime_core/`。
@@ -154,20 +185,6 @@ cp MID360_config.example.json MID360_config.json
 ```
 
 启动前配置 `GO2_IP`、`EDGE_HOST`、`DEMO_PROFILE` 和可选 `WITH_FOXGLOVE` / `WITH_EDGE_UPLINK` 等开关。Jetson 系统时间必须正确，否则构建可能因 apt/gmake 失败。
-
-## 核心运行流程
-
-```text
-Super-LIO → PCT global guidance → Behavior Tree → SCAN local planner
-          → Forwarders → Unitree Sport APIs → Go2
-```
-
-1. Super-LIO 提供位姿估计。
-2. PCT 提供全局路径指引。
-3. 行为树负责任务调度与执行。
-4. SCAN 负责局部连续路径规划。
-5. Forwarders 适配控制指令。
-6. Unitree Sport APIs 驱动硬件。
 
 ## 项目结构与边界
 
