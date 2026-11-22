@@ -10,19 +10,9 @@
 
 > 图源 `docs/media/qcn_arch.png`。颜色即验收级别：**绿**＝真机主链在运行、**蓝**＝主链 launch 里默认关闭、**橙**＝只在测试/实验中运行、**灰**＝云端两层（文档记录已闭环）、**红虚线**＝设计意图、代码里没有。带 `src/` 前缀的节点实体在 `platform/go2`。
 
-```text
-┌─ 符号平面（runtime_core/）──────────────────────────────────────────────────────┐
-│  语义观测 → TaskIntent 契约准入 → StateGate → 技能编排 → Forwarder → 执行反馈    │
-│  契约单一来源 contracts/runtime_contract.json；.msg → IDL → idlc 类型确定性生成  │
-└───────────────────────────────┬─────────────────────────────────────────────────┘
-                                │  DDS（CycloneDDS，无桥接；同机 iceoryx SHM）
-                                │  只载 TaskIntent / ExecutionFeedback / mission event
-┌───────────────────────────────┴─────────────────────────────────────────────────┐
-│  度量平面（导航执行栈）                                                          │
-│  Super-LIO 位姿 → PCT 全局指引 → SCAN 局部规划(tomogram+B-spline) → Forwarders  │
-│  → Unitree Sport API → Go2                                                      │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+![两个平面一条接缝](docs/media/two_planes_seam.png)
+
+> 接缝只载 TaskIntent / ExecutionFeedback / mission event：蓝＝符号平面（`runtime_core/`，ROS-free），绿＝度量平面（导航栈，实现在 `platform/go2`），灰＝外部 / 本体。
 
 执行只发生在度量空间（OS0）；三空间定义见 [端侧系统架构](docs/架构/架构_端侧系统架构.md)。
 
