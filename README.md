@@ -4,7 +4,7 @@
 [![ROS 2](https://img.shields.io/badge/ROS%202-Humble-22314E.svg)](https://docs.ros.org/en/humble/)
 
 > **真机跑通的这一份代码**：Go2 + Livox Mid-360，在线建图 → PCT 全局指引 → SCAN 连续局部规划 → Forwarder → Sport API。
-> ROS 2 overlay（`src/`）+ `docker/` + `scripts/` + `patches/` + `third_party/` 都在本分支；2026-11 起冻结只读，真机部署只认这里。ROS-free 的运行时主线在 [`main`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/main)。
+> ROS 2 overlay（`src/`）+ `docker/` + `scripts/` + `patches/` + `third_party/` 都在本分支；2026-11 起冻结只读，真机部署只认这里。ROS-free 的运行时主线在 [`main`](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/tree/main)。
 
 ## 演示
 
@@ -26,8 +26,8 @@
 前置：Jetson Orin NX（或同架构 Linux）、Docker、Go2 与 Mid-360 同网段可达、系统时间正确（时间错误会导致 apt/gmake 失败）。
 
 ```bash
-git clone https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws.git
-cd quadruped-crossfloor-nav-ws
+git clone https://github.com/zxinyu-robot/autonomous-robot-task-navigation.git
+cd autonomous-robot-task-navigation
 git checkout platform/go2
 
 # 雷达网络（真机必需；位置由 sensors.launch.py 决定）
@@ -63,7 +63,7 @@ export GO2_IP=<机器狗 IP>          # Foxglove 绑定用
 | [docs/架构/架构_端侧系统架构.md](docs/架构/架构_端侧系统架构.md) | 目标架构（三空间、两个平面） |
 | [docs/开发参考/](docs/开发参考) | DDS 性能、PCT 接入、外参标定、Foxglove 等专题 |
 
-运行时的接口、契约与测试说明在 [`main`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/main)：`runtime_core/`、`fork_spatial/`、`interfaces/motionslam_msgs/`。
+运行时的接口、契约与测试说明在 [`main`](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/tree/main)：`runtime_core/`、`fork_spatial/`、`interfaces/motionslam_msgs/`。
 
 ## 署名与许可
 
