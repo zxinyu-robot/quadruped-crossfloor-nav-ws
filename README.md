@@ -3,6 +3,7 @@
 [![Original code license](https://img.shields.io/badge/Original%20code-MIT-blue.svg)](LICENSE)
 
 面向弱网 / 断网环境下自主机器人任务导航的可靠运行时系统。
+> ReliableRTS: A Runtime System for Autonomous Robot Task Navigation in Offline and Weak-Network Scenarios
 
 ## 架构
 
