@@ -11,19 +11,9 @@
 
 > 图源 `docs/media/qcn_arch.png`。颜色即验收级别：**绿**＝真机主链在运行、**蓝**＝主链 launch 里默认关闭、**橙**＝只在测试/实验中运行、**灰**＝云端两层（文档记录已闭环）、**红虚线**＝设计意图、代码里没有。带 `src/` 前缀的节点实体在 `platform/go2`。
 
-```text
-┌─ 符号平面（runtime_core/）──────────────────────────────────────────────────────┐
-│  语义观测 → TaskIntent 契约准入 → StateGate → 技能编排 → Forwarder → 执行反馈    │
-│  契约单一来源 contracts/runtime_contract.json；.msg → IDL → idlc 类型确定性生成  │
-└───────────────────────────────┬─────────────────────────────────────────────────┘
-                                │  DDS（CycloneDDS，无桥接；同机 iceoryx SHM）
-                                │  只载 TaskIntent / ExecutionFeedback / mission event
-┌───────────────────────────────┴─────────────────────────────────────────────────┐
-│  度量平面（导航执行栈）                                                          │
-│  Super-LIO 位姿 → PCT 全局指引 → SCAN 局部规划(tomogram+B-spline) → Forwarders  │
-│  → Unitree Sport API → Go2                                                      │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+![两个平面一条接缝](docs/media/two_planes_seam.png)
+
+> 接缝只载 TaskIntent / ExecutionFeedback / mission event：蓝＝符号平面（`runtime_core/`，ROS-free），绿＝度量平面（导航栈，实现在 `platform/go2`），灰＝外部 / 本体。
 
 执行只发生在度量空间（OS0）；三空间定义见 [端侧系统架构](docs/架构/架构_端侧系统架构.md)。
 
@@ -38,24 +28,11 @@
 
 PCT / SCAN 是技能内部的度量算子，不是 BT 的下游节点。
 
-## 一条完整链路：跨楼层任务从进来到反馈回去
+## 一条完整链路
 
-以「从一楼去二楼会议室门口」为例：
+![跨楼层任务一条链：从任务意图到执行反馈](docs/media/cross_floor_chain.png)
 
-| # | 发生什么 | 执行者 | 被拦下时 |
-|---|---|---|---|
-| 1 | 产出任务意图：目标点、楼层、`map_id`、`revision` | 世界空间 | 不产生意图就什么都不发生 |
-| 2 | `TaskIntent` 过 DDS 接缝（只载符号量） | 接缝 | — |
-| 3 | 契约校验：14 类拒绝码（schema / 平台 / 禁区 / 禁控字段 / 参数） | `runtime_core` `admission` | `REJECT_*`，不进执行 |
-| 4 | 准入仲裁：task_id 幂等、重复受理、忙态、优先级抢占 | `runtime_core` `TaskAdmission` | `IDEMPOTENT` / `REJECT_DUPLICATE_TASK_ID` / `REJECT_BUSY` / `PREEMPT` |
-| 5 | 状态门控：定位有效性、TTL 500 ms、置信度 ≥ 0.5、地图版本一致 | `runtime_core` `StateGate` | 进 `HOLDING`，**不拿过期定位继续走** |
-| 6 | 技能编排：`Navigate` → 导航 BT 接管该技能生命周期 | `runtime_core` → BT | `failed(reason)` 上行 |
-| 7 | PCT 给全局指引 + SCAN 做局部连续规划（技能内度量算子） | 度量平面 | BT 重决策，换指引而非重试同一点 |
-| 8 | 速度与控制下发 | Forwarders → Sport API → Go2 | 本体现急停 |
-| 9 | 逐点到达判定 → 技能结果 | BT | 稳定类型 `reached`/`stuck`/`plan_fail`/`link_lost` |
-| 10 | `ExecutionFeedback` 回执 + 带 `session`/`context_generation` 的物料归档 | 接缝 | — |
-
-> 第 7–9 步在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2)；当前真机链路还不经过第 3–5 步的运行时裁决。
+> 以「从一楼去二楼会议室门口」为例。红字是被拦下 / 失败回程的去向；中间 3–9 步没有世界侧介入，也没有从世界侧下发的速度。第 7–9 步实现在 `platform/go2`，当前真机链路还不经过第 3–5 步的运行时裁决。
 
 ## 测试报告
 
@@ -77,15 +54,15 @@ PCT / SCAN 是技能内部的度量算子，不是 BT 的下游节点。
 | 长稳 64 KiB @ 10 Hz × 20 min × 4 轮 | 零丢失（11960/11960），p50 **1108–1134 µs**，p95 2026–2064 µs | `runtime_core/scripts/dds_soak_repeat.sh` |
 | 接收退出语义 T4（100+1s+100）× 5 | 5/5 无提前退出，`idle=2000 ms` | `runtime_core/scripts/dds_sub_exit_cases.sh` |
 
-**度量平面**：云端多楼层闭环 11/11、真机在线建图与规划 —— [云端闭环视频](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/media/cross_floor_demo.mp4)、[真机在线 + Elevator-LIO 回放](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/media/cross_floor_with_elevator_lio.mp4)。
+**度量平面**：云端多楼层闭环 11/11、真机在线建图与规划 —— [云端闭环视频](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/docs/media/cross_floor_demo.mp4)、[真机在线 + Elevator-LIO 回放](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/docs/media/cross_floor_with_elevator_lio.mp4)。
 
 未验证：Humble 容器内复跑上述接缝数字、arm64 / Jetson 实机、≥2 小时长稳、writer-only / reader-only 深度拆分；运行时接入真机主链**计划中**。时序与踩坑记录见 [dds-interop.md](runtime_core/docs/dds-interop.md)（含 Match Gate：`matched < 1` 判 `INVALID`，不出数）。
 
 ## 快速开始（无需 ROS、无需 Docker）
 
 ```bash
-git clone https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws.git
-cd quadruped-crossfloor-nav-ws
+git clone https://github.com/zxinyu-robot/autonomous-robot-task-navigation.git
+cd autonomous-robot-task-navigation
 
 # runtime_core
 python3 runtime_core/scripts/gen_contract.py --check
@@ -103,7 +80,7 @@ cmake -S fork_spatial -B build/fork_spatial && cmake --build build/fork_spatial 
 ctest --test-dir build/fork_spatial --output-on-failure && ./build/fork_spatial/examples/cpp/runtime_demo
 ```
 
-编译 `runtime_core/dds/` 原生类型支持（需 `find_package(CycloneDDS)` 找到 `libddsc`）：加 `-DLEGGED_NAV_BUILD_DDS=ON`。Go2 真机构建与起栈见 [`platform/go2` README](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/README.md)。
+编译 `runtime_core/dds/` 原生类型支持（需 `find_package(CycloneDDS)` 找到 `libddsc`）：加 `-DLEGGED_NAV_BUILD_DDS=ON`。Go2 真机构建与起栈见 [`platform/go2` README](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/README.md)。
 
 ## 署名与许可
 
