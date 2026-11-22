@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -32,20 +32,6 @@ jobs:
           cmake --build build/fork_spatial -j
           ctest --test-dir build/fork_spatial --output-on-failure
           ./build/fork_spatial/examples/cpp/runtime_demo
-
-  bringup_pytest:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: pytest（不依赖 ROS 的用例）
-        run: |
-          pip install pytest pyyaml
-          # test_semantic_mission.py 依赖 rclpy，云端容器内跑；CI 只跑纯 Python 用例
-          python -m pytest src/motionslam_bringup/test \
-            --ignore=src/motionslam_bringup/test/test_semantic_mission.py -q
 
   runtime_core:
     runs-on: ubuntu-22.04

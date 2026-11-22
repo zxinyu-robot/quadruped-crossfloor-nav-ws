@@ -2,7 +2,7 @@
 
 > 依据 [eProsima Fast DDS Performance](https://www.eprosima.com/developer-resources/performance/eprosima-fast-dds-performance) 的通用结论整理，并结合 MotionSLAM 项目栈（**CycloneDDS + ROS 2 Humble**）给出可落地的优化思路。
 >
-> 当前目标与通信基座：[项目规划_空间状态运行时.md](../规划/项目规划_空间状态运行时.md) · [项目开发规范准则](../项目规范/项目开发规范准则.md)
+> 当前目标与通信基座：[项目规划_空间状态运行时.md](../规划/项目规划_空间状态运行时.md) · [项目开发规范准则](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/项目规范/项目开发规范准则.md)
 
 ---
 
@@ -202,4 +202,4 @@ ENV ROS_DOMAIN_ID=0
 | 阶段 3D：PCT+SCAN | `/lio/cloud_world` → SHM / LayerFactory；PCT on-demand tomogram |
 | 阶段 4：Pipeline | `/cmd_vel` 小消息；`rt/*` 状态订阅最小化 |
 
-优化应 **先测量再改动**；每项变更保留可回滚的 bag 与参数快照，符合 [项目开发规范准则](../项目规范/项目开发规范准则.md) 中的可验证交付要求。
+优化应 **先测量再改动**；每项变更保留可回滚的 bag 与参数快照，符合 [项目开发规范准则](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/项目规范/项目开发规范准则.md) 中的可验证交付要求。
