@@ -28,9 +28,10 @@ Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`
 | `runtime/task_runtime/` | 任务状态机与插件注册；可选 LNR 恢复桥、FSR 契约桥 | C++20，ROS-free |
 | `fork_spatial/` | 空间状态契约与故障注入、Token / ESN / 端侧策略、MissionOrchestrator（原 ForkSpatial-Runtime-Engine） | C++20，ROS-free |
 | `interfaces/motionslam_msgs/` | 跨平面 `.msg` 原件（含 rebind 草案）；`runtime_core/dds/` 的 DDS 类型由它导出生成 | ROS 2 interface 包 |
+| `contracts/` | 契约原件索引（原件留在各模块，不搬放） | — |
 | `docs/` | 架构、规划、符号空间契约、DDS 参考；`docs/架构/assets/`、`docs/media/` 存首页用的图 | — |
 
-三个模块的职责还有重叠（两套 `TaskRuntime`、两份 `SpatialState`），对齐计划见 [ROADMAP](docs/ROADMAP.md)。
+三个模块的职责还有重叠（两套 `TaskRuntime`、两份 `SpatialState`），对照与合并顺序见 [模块职责与交互契约](docs/架构/模块职责与交互契约.md)。
 
 ## 验证程度
 
