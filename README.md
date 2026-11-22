@@ -27,24 +27,11 @@
 
 PCT / SCAN 是技能内部的度量算子，不是 BT 的下游节点。
 
-## 一条完整链路：跨楼层任务从进来到反馈回去
+## 一条完整链路
 
-以「从一楼去二楼会议室门口」为例：
+![跨楼层任务一条链：从任务意图到执行反馈](docs/media/cross_floor_chain.png)
 
-| # | 发生什么 | 执行者 | 被拦下时 |
-|---|---|---|---|
-| 1 | 产出任务意图：目标点、楼层、`map_id`、`revision` | 世界空间 | 不产生意图就什么都不发生 |
-| 2 | `TaskIntent` 过 DDS 接缝（只载符号量） | 接缝 | — |
-| 3 | 契约校验：14 类拒绝码（schema / 平台 / 禁区 / 禁控字段 / 参数） | `runtime_core` `admission` | `REJECT_*`，不进执行 |
-| 4 | 准入仲裁：task_id 幂等、重复受理、忙态、优先级抢占 | `runtime_core` `TaskAdmission` | `IDEMPOTENT` / `REJECT_DUPLICATE_TASK_ID` / `REJECT_BUSY` / `PREEMPT` |
-| 5 | 状态门控：定位有效性、TTL 500 ms、置信度 ≥ 0.5、地图版本一致 | `runtime_core` `StateGate` | 进 `HOLDING`，**不拿过期定位继续走** |
-| 6 | 技能编排：`Navigate` → 导航 BT 接管该技能生命周期 | `runtime_core` → BT | `failed(reason)` 上行 |
-| 7 | PCT 给全局指引 + SCAN 做局部连续规划（技能内度量算子） | 度量平面 | BT 重决策，换指引而非重试同一点 |
-| 8 | 速度与控制下发 | Forwarders → Sport API → Go2 | 本体现急停 |
-| 9 | 逐点到达判定 → 技能结果 | BT | 稳定类型 `reached`/`stuck`/`plan_fail`/`link_lost` |
-| 10 | `ExecutionFeedback` 回执 + 带 `session`/`context_generation` 的物料归档 | 接缝 | — |
-
-> 第 7–9 步在 [`platform/go2`](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/tree/platform/go2)；当前真机链路还不经过第 3–5 步的运行时裁决。
+> 以「从一楼去二楼会议室门口」为例。红字是被拦下 / 失败回程的去向；中间 3–9 步没有世界侧介入，也没有从世界侧下发的速度。第 7–9 步实现在 `platform/go2`，当前真机链路还不经过第 3–5 步的运行时裁决。
 
 ## 测试报告
 
