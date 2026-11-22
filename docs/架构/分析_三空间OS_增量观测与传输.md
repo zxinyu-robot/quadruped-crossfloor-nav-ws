@@ -1,7 +1,7 @@
 # 分析：三空间 OS、增量观测与非 WiFi-TCP 传输
 
 > **性质**：设计分析（问答展开），**不是**架构勾选、**不是**规划进度、**不是**验收结论。  
-> **权威入口**：[架构_端侧系统架构.md](架构_端侧系统架构.md)（目标态）· [项目规划_空间状态运行时.md](../规划/项目规划_空间状态运行时.md)（当前目标与门禁）· [边端协同接口规范.md](../项目规范/边端协同接口规范.md)（接口）· [测试记录.md](../测试验收/测试记录.md)（历史真机事实）。  
+> **权威入口**：[架构_端侧系统架构.md](架构_端侧系统架构.md)（目标态）· [项目规划_空间状态运行时.md](../规划/项目规划_空间状态运行时.md)（当前目标与门禁）· [边端协同接口规范.md](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/项目规范/边端协同接口规范.md)（接口）· [测试记录.md](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/测试验收/测试记录.md)（历史真机事实）。
 > **日期**：2026-08-19 · 从连续设计问答整理，保留层次与推理，压缩现场网段为占位符。
 
 本文按提问顺序展开。每一节先写「问的是什么」，再写「为什么会这么问」，然后才是分层分析；末尾的收束只服务于下一问，不当成已经落地。
@@ -585,7 +585,7 @@ WorldObs
 | 主题 | 锚点 |
 |------|------|
 | 目标态 OS / 技能 ABI | [架构_端侧系统架构.md](架构_端侧系统架构.md) |
-| 物模型信封与拒绝码 | `behavior_mode.py` · [边端协同接口规范.md](../项目规范/边端协同接口规范.md) |
+| 物模型信封与拒绝码 | `behavior_mode.py` · [边端协同接口规范.md](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/项目规范/边端协同接口规范.md) |
 | TCP 上行客户端（应降为 adapter） | `edge_uplink_client.py` |
 | MSTOK 帧（给模型的路径被第五问否定） | `semantic_bev_frame.py` · `semantic_token_uplink_node.py` |
 | 子图 / frontier（观测胚） | `subgraph_snapshot.py` · `frontier_export.py` |
@@ -593,7 +593,7 @@ WorldObs
 | 层角色 PRODUCE/EXECUTE | `data_layer_types.py` |
 | 本机 SHM 先例 | `motionslam_ipc/shm_cloud_ring.hpp` |
 | 断网返航 | `return_home.py` |
-| 边侧 Qwen 物料表 | [边侧Qwen2.5-VL接入说明.md](../开发参考/边侧Qwen2.5-VL接入说明.md) |
+| 边侧 Qwen 物料表 | [边侧Qwen2.5-VL接入说明.md](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/开发参考/边侧Qwen2.5-VL接入说明.md) |
 
 ---
 

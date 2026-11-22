@@ -1,6 +1,6 @@
 # runtime_core DDS 最小复现沙箱（**不是部署镜像**）
 #
-# 主线是仓库根的 docker/Dockerfile（ros:humble，含完整导航栈），
+# 主线是 platform/go2 分支仓库根的 docker/Dockerfile（ros:humble，含完整导航栈），
 # 进容器后用 ./scripts/dev/verify_dds.sh 验证同一条 DDS 链路。
 # 本文件只解决一件事：不装 Super-LIO / Livox / Foxglove 那一大堆依赖，
 # 也能在几十秒内复现 dds_interop_check / dds_qos_matrix / dds_shm_proof / dds_soak。

@@ -16,7 +16,7 @@
 
 ## 演示
 
-本目录没有单独的视频，整体演示见仓库根 [README](../README.md) 的「演示」一节
+本目录没有单独的视频，整体演示见 [`platform/go2` 分支 README](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/README.md) 的「演示」一节
 （视觉意图 → TaskIntent → 导航栈 → 执行反馈 的完整链路）。
 
 回放脚本仍在 [`scripts/e2e_arkitscenes_awq.py`](scripts/e2e_arkitscenes_awq.py) 与

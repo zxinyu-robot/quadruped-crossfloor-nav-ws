@@ -8,7 +8,7 @@
 #
 # --shm-size 不是可选项：实测 iceoryx 段要占 2.4 GB 量级，而 Docker 默认 /dev/shm
 # 只有 64 MB。这里同时给 --ipc=host 与 --shm-size，保证两种隔离方式下都够用；
-# 主线容器（仓库根 docker/run_container.sh）用的是 --ipc host，共享宿主机 /dev/shm。
+# 主线容器（platform/go2 分支 docker/run_container.sh）用的是 --ipc host，共享宿主机 /dev/shm。
 set -euo pipefail
 IMAGE=${IMAGE:-runtime-core-dds:humble}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)

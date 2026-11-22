@@ -265,7 +265,7 @@ iceoryx chunk 档位数 >=  历史深度 + 突发在途量
 
 ## 12. 容器化验收状态（Humble + Docker）
 
-主线镜像为仓库根 `docker/Dockerfile`（`ros:humble`）。已核实（硬证据，非推测）：
+主线镜像为 `platform/go2` 分支仓库根的 `docker/Dockerfile`（`ros:humble`）。已核实（硬证据，非推测）：
 
 | 项 | 结论 | 证据 |
 | --- | --- | --- |
