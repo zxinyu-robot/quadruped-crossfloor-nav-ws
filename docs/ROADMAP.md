@@ -15,7 +15,8 @@
 
 另有 `docs/符号空间契约.md`、`interfaces/motionslam_msgs/` 两处契约描述。
 
-- [ ] 一份「模块职责 + 交互契约」文档，契约原件收进一个目录（第一个 PR，只改文档）
+- [x] [模块职责与交互契约](架构/模块职责与交互契约.md) + [契约索引](../contracts/README.md)（原件不搬放，由索引统一）
+- [ ] 原因码统一：执行期失败用 `fork_spatial` `ReasonCode`，准入拒绝码给映射表
 - [ ] 任务运行时收成一份（建议 `runtime_core`）；`task_runtime` 的插件注册与 LNR 恢复桥并入
 - [ ] 空间状态契约以 `fork_spatial` 为准，`StateGate` 改读其契约类型
 - [ ] `MissionOrchestrator` 降为参考实现
