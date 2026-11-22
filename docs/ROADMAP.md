@@ -5,8 +5,7 @@
 
 ## A. 上真机（真机部署阶段事项，云端结论都需真机复核）
 
-- [ ] **边端闭环**：edge uplink / 边端协同链路真机验证（云端 `WITH_EDGE=1`
-  已可跑，真机未验）
+- [ ] **端侧自主闭环**：GO2 本机「TaskIntent → 状态门控 → BT 技能编排 → 度量执行 → 反馈」完整闭环真机验证（云端 vkernel 已可跑 11/11，真机未验）
 - [ ] **返航 return_home**：玻璃 trap 已移除并改名 `slow_mode`，真机返航复测
 - [ ] **动态障碍**：virtual_obstacle_merge 管道保留，动态/行人场景验收
 - [ ] **长时耐久**：目前只有 1m 短程（偏差 0.43m）与云端多楼层仿真
@@ -83,15 +82,15 @@
 - [x] 双视口渲染（实时点云 + 真实 occupancy_inflate + 轨迹带）
 - [x] **占据图滑动窗口**：渲染器 `--occ-window <秒>`，体素按 last_seen
   遗忘，对齐在线占据图语义（0=累积，保持现有视频行为）
-- [x] **边端链路云端化**：`WITH_EDGE=1 scripts/dev/cloud_sim_multifloor.sh`
-  自动起 mock 接收端 + `with_edge_uplink:=true edge_host:=127.0.0.1`
+- [x] **端侧自主云端仿真**：`scripts/dev/cloud_sim_multifloor.sh` 多楼层闭环（边端 uplink 已终止，不再作为仿真链路）
 - [ ] **多楼层真机参数回放**：把真机 bag 灌进 vkernel 回放验证一致性
   （缺真机 bag 素材，阻塞）
 
 ## 范围说明
 
-本仓库目标收敛为 **Go2 真机闭环**：A 组真机验证 + B 组状态契约 P0/P1。
-多机协同 / DDS 弱网接口暂不在本仓库做，后续按需接
+本仓库目标收敛为 **Go2 端侧自主闭环**：A 组真机验证 + B 组状态契约 P0/P1。
+边端协同（edge uplink / 边侧模型）与多机协同 / DDS 弱网接口均不再开发，
+信息流转统一为 GO2 本机 UDP + SHM + DDS QoS + C++；多机后续按需接
 [Swarm Spatial Link](https://github.com/zxinyu-robot/swarm-spatial-link)。
 
 ## 待决策项

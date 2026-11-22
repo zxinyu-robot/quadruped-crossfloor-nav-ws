@@ -213,13 +213,12 @@ docker build -t motionslam:humble docker/
 
 # 5) 起栈 → 看日志 → 停栈（宿主机执行，nav start 会自己拉起容器）
 export GO2_IP=<机器狗 IP>          # Foxglove 绑定用
-export EDGE_HOST=<边端 IP>         # 可选；不用边端上行可不设
 ./scripts/motionslam nav start
 ./scripts/motionslam nav watch     # 关键事件；-f 实时跟 /demo/mission/event
 ./scripts/motionslam nav stop      # 急停并停栈
 ```
 
-常用环境变量：`DEMO_PROFILE`（默认 `demo_short`）、`WITH_FOXGLOVE`（默认 `true`）、`WITH_EDGE_UPLINK`（默认 `false`）、`WITH_PCT_PLANNER`（默认 `true`）。完整清单见 `scripts/nav/start_demo_scan_nav.sh` 顶部。
+常用环境变量：`DEMO_PROFILE`（默认 `demo_short`）、`WITH_FOXGLOVE`（默认 `true`）、`WITH_PCT_PLANNER`（默认 `true`）。完整清单见 `scripts/nav/start_demo_scan_nav.sh` 顶部。
 
 ### C. 接缝验证（容器内，可选）
 

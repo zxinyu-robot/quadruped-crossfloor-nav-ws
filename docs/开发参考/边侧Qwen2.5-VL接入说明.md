@@ -1,4 +1,7 @@
-# 边侧 Qwen2.5-VL-7B 接入说明
+# 边侧 Qwen2.5-VL-7B 接入说明（已退役）
+
+> **版本**：2026-11-22 · 边端协同已终止，本文仅作历史归档，不具约束力。
+> 端侧自主权威契约见 [符号空间契约](../符号空间契约.md) 与 [代数变化安全重绑定](../架构/架构_代数变化安全重绑定.md)。
 
 > 给边侧（世界空间）接入 **Qwen2.5-VL-7B** 用：**端侧上行能生产什么**、**JSON 谁构建**、**TCP 必须下发什么**。  
 > 契约实现：[behavior_mode.py](../../src/motionslam_bringup/scripts/behavior_mode.py) · 端口：[edge_uplink.yaml](../../src/motionslam_bringup/config/edge_uplink.yaml)  

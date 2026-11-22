@@ -8,7 +8,7 @@ Thin Harness 任务意图入口，上层链路（PCT→BT→SCAN→forwarder）�
 | 件 | 文件 | 作用 |
 |---|---|---|
 | vkernel_sim | `src/motionslam_bringup/scripts/vkernel_sim.py` | 虚拟设备内核：合成 `/lio/cloud_world`（房间点云）+ `/lio/robo/odom`（按 `/cmd_vel` 积分），可选接 `/api/sport/request` |
-| thin_harness | `scripts/thin_harness_node.py` | Task Intent 下行 `:9879` / Execution Feedback 上行 `:9880`，桥到 BT 语义任务入口 |
+| thin_harness | `scripts/thin_harness_node.py` | Task Intent / Execution Feedback 经 DDS/SHM 流转（历史 TCP `:9879`/`:9880` 已废止），桥到 BT 语义任务入口 |
 | task_intent | `scripts/task_intent.py` | 意图校验纯逻辑（schema、白名单技能、禁控字段、world_ref 门禁），可 pytest |
 | task_intent_client | `scripts/task_intent_client.py` | 云端客户端：发 intent→收 feedback→等到 `task_terminal` |
 | cloud_mission_watch | `scripts/cloud_mission_watch.py` | 冒烟判据：等 `mission_succeeded` |

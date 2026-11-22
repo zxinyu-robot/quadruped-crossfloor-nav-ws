@@ -9,6 +9,7 @@
 
 #include "legged_nav/admission.hpp"
 #include "legged_nav/executor.hpp"
+#include "legged_nav/feedback.hpp"
 #include "legged_nav/json.hpp"
 #include "legged_nav/runtime.hpp"
 #include "legged_nav/spatial_context.hpp"
@@ -291,6 +292,15 @@ int main() {
     CHECK(blockingHazards(near_d, 10, 10, hazard_ids).size() == 2);
     CHECK(blockingHazards(far_d, 10, 10, hazard_ids).empty());
     CHECK(blockingHazards({}, 0, 0, hazard_ids).size() == 2);
+
+    // ---------- feedback（progress 展平，与 Python build_feedback 同构） ----------
+    auto fb_flat = build_feedback("t-flat", "succeeded", "succeeded",
+                                  {{"skill_index", "0"}, {"skill", "Navigate"}},
+                                  "", 12345);
+    CHECK(fb_flat.count("progress.skill_index") == 1);
+    CHECK(fb_flat.count("progress.skill") == 1);
+    CHECK(fb_flat.count("progress") == 0);
+    CHECK(fb_flat.at("progress.skill_index") == "0");
 
     // ---------- 契约对照语料（与 Python tests/test_contract_parity.py 同一文件） ----------
     {

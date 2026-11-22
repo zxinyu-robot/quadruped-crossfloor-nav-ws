@@ -18,12 +18,20 @@ def build_feedback(
     detail: str = "",
     timestamp_ns: int = 0,
 ) -> dict[str, Any]:
-    return {
+    """构建 schema=motionslam.execution_feedback.v1 的反馈对象。
+
+    progress 展平为 ``progress.<key>``，与 C++ 权威实现
+    (src/feedback.cpp) 的 string→string 平铺结构同构，
+    保证同一 schema 下 C++/Python 双实现 payload 结构一致。
+    """
+    fb: dict[str, Any] = {
         "schema": SCHEMA,
         "task_id": task_id,
         "state": state,
         "event": event,
-        "progress": progress or {},
         "detail": detail,
         "timestamp_ns": timestamp_ns or time.time_ns(),
     }
+    for key, value in (progress or {}).items():
+        fb[f"progress.{key}"] = value
+    return fb
