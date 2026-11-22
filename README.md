@@ -1,26 +1,8 @@
 # Fork Navigation Runtime
 
 [![Original code license](https://img.shields.io/badge/Original%20code-MIT-blue.svg)](LICENSE)
-面向弱网 / 断网自主机器人的语义状态管理、时序行为记忆与端侧持续学习运行时。
 
-A semantic-state, behavior-memory and edge continual-learning runtime for autonomous robots under weak or no connectivity.
-
-> 端侧任务运行时：上层只给任务意图，能不能执行由状态门控裁决，结果用稳定类型回执 —— 不靠日志猜，也不允许绕过裁决直接下发运动。
-> 本分支只保留 ROS-free 运行时；Go2 真机链路（ROS 2 overlay、`docker/`、`scripts/`、演示视频）在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2)。
-
-**明确不做**：端侧大模型实时推理；从世界侧下发速度；多机协同（在关联仓）。
-
-## 目录
-
-| 目录 | 职责 | 语言 / 构建 |
-|---|---|---|
-| `runtime_core/` | 任务契约准入、StateGate、技能编排、执行反馈、DDS 类型生成与接缝实验 | C++20 + Python 对照实现，ROS-free |
-| `runtime/task_runtime/` | 任务状态机与插件注册；可选 LNR 恢复桥、FSR 契约桥 | C++20，ROS-free |
-| `fork_spatial/` | 空间状态契约与故障注入、Token / ESN / 端侧策略、MissionOrchestrator | C++20，ROS-free |
-| `interfaces/motionslam_msgs/` | 跨平面 `.msg` 原件；`runtime_core/dds/` 的 DDS 类型由它导出生成 | ROS 2 interface 包 |
-| `docs/` | 架构、规划、符号空间契约、DDS 参考；`docs/media/` 存首页图 | — |
-
-三个模块职责仍有重叠（两套 `TaskRuntime`、两份 `SpatialState`），对齐计划见 [ROADMAP](docs/ROADMAP.md)。
+面向弱网 / 断网环境下自主机器人任务导航的可靠运行时系统。
 
 ## 架构
 
