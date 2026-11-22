@@ -15,6 +15,23 @@ jobs:
           cmake -S runtime/task_runtime -B build/task_runtime
           cmake --build build/task_runtime -j
           ctest --test-dir build/task_runtime --output-on-failure
+      - name: build + ctest（LNR 恢复桥 + 仓内 fork_spatial 契约桥）
+        run: |
+          cmake -S runtime/task_runtime -B build/task_runtime_fsr \
+            -DMOTIONSLAM_WITH_LNR=ON -DMOTIONSLAM_WITH_FSR=ON
+          cmake --build build/task_runtime_fsr -j
+          ctest --test-dir build/task_runtime_fsr --output-on-failure
+
+  fork_spatial:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: build + ctest + demo（不依赖 ROS）
+        run: |
+          cmake -S fork_spatial -B build/fork_spatial
+          cmake --build build/fork_spatial -j
+          ctest --test-dir build/fork_spatial --output-on-failure
+          ./build/fork_spatial/examples/cpp/runtime_demo
 
   bringup_pytest:
     runs-on: ubuntu-22.04

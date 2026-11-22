@@ -49,21 +49,17 @@ if(MOTIONSLAM_WITH_LNR)
 endif()
 
 # FSR contract bridge + fault-injection drills (requires the LNR bridge).
-# Pulls fork-spatial-runtime (pinned); set
-# FETCHCONTENT_SOURCE_DIR_FORK_SPATIAL_RUNTIME to use a local checkout.
+# Uses the in-repo FSR subtree at fork_spatial/.
 option(MOTIONSLAM_WITH_FSR "Build the FSR contract bridge" OFF)
 if(MOTIONSLAM_WITH_FSR)
   if(NOT MOTIONSLAM_WITH_LNR)
     message(FATAL_ERROR "MOTIONSLAM_WITH_FSR requires MOTIONSLAM_WITH_LNR=ON")
   endif()
-  include(FetchContent)
   set(FSR_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-  FetchContent_Declare(fork_spatial_runtime
-    GIT_REPOSITORY https://github.com/zxinyu-robot/fork-spatial-runtime.git
-    GIT_TAG 17534dc)
   set(_motionslam_build_testing ${BUILD_TESTING})
   set(BUILD_TESTING OFF)
-  FetchContent_MakeAvailable(fork_spatial_runtime)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../fork_spatial
+                   ${CMAKE_CURRENT_BINARY_DIR}/fork_spatial)
   set(BUILD_TESTING ${_motionslam_build_testing})
 
   add_library(contract_bridge src/contract_bridge.cpp)

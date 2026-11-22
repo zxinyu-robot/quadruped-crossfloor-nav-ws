@@ -22,6 +22,15 @@
 
 第三方项目及其修改不因本仓库的 MIT 许可证而改变许可。涉及 GPL 代码与其他组件的组合或分发时，需根据具体许可版本、集成方式和分发范围评估兼容性；源码可在 GitHub 上访问也属于需要考虑的分发情形。
 
+## 并入本仓的自研子树
+
+| 目录 | 来源 | commit | 方式 | 许可 |
+|------|------|--------|------|------|
+| `runtime_core/` | https://github.com/zxinyu-robot/Autonomous-Navigation-for-Legged-Robots.git | `fe5bdb8` | `git subtree --squash` | MIT |
+| `fork_spatial/` | https://github.com/zxinyu-robot/ForkSpatial-Runtime-Engine.git | `88e75b9` | `git subtree --squash` | MIT（[LICENSE](fork_spatial/LICENSE)） |
+
+同步上游改动：`git subtree pull --prefix=fork_spatial https://github.com/zxinyu-robot/ForkSpatial-Runtime-Engine.git main --squash`。
+
 ## 本仓 patch
 
 - `patches/scan-planner-motionslam.patch` — 应用到 SCAN-Planner 后于 `scan_planner_ws` 编译

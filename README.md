@@ -114,6 +114,7 @@
 | --- | --- | --- | --- |
 | 符号运行时 | `runtime_core/`（C++20 + Python 对照实现，ROS-free） | 本仓分支线 | 契约准入、门控、技能编排、反馈 |
 | 编排 | `motionslam_bringup`（BT）· `runtime/task_runtime` | 本仓主干 | 任务调度与原子技能表 |
+| 空间状态与认知 | `fork_spatial/`（C++20，ROS-free） | 原 ForkSpatial-Runtime-Engine，subtree 并入 | 空间状态契约与故障注入、Token / ESN / 端侧策略、MissionOrchestrator |
 | 通信接缝 | CycloneDDS 0.10.5 · iceoryx（同机 SHM） | 本仓接缝工程 | 两平面直连，无桥接 |
 | 类型链路 | rosidl 导出 → `transform_rosidl_idl.py` → `idlc` | 本仓接缝工程 | `.msg` 单一来源，生成物可校验 |
 | 定位 | Super-LIO · Livox Mid-360 | 本仓主干 | 位姿估计 |
@@ -240,7 +241,8 @@ export GO2_IP=<机器狗 IP>          # Foxglove 绑定用
 - **主导与系统设计**：zxinyu（zxiangsheng2314@gmail.com）——导航栈、三空间架构、行为树编排、端侧任务运行时、Forwarder 与真机适配层。
 - **分支线归并**：端侧任务运行时经 `feat/runtime-core-overlay` 分支线并入 `main`（PR #19），代码位于 `runtime_core/`，演进历史见本仓提交记录；本仓由 `MotionSLAM_ws` 更名而来，ROS 包与脚本沿用 `motionslam` 前缀。
 - **工程化与实验辅助**：契约单一来源、DDS 类型生成链路、契约/DDS/长稳实验脚本与记录文档在 GitHub Copilot 辅助下完成；所有结论可由 `runtime_core/scripts/` 与 `scripts/` 重跑复现，未经复现的数字不写入文档。
-- **关联**：[ForkSpatial-Runtime-Engine](https://github.com/zxinyu-robot/ForkSpatial-Runtime-Engine)（通用空间平台，提供 ①②③ 三个翻译面的实现骨架）、[legged-navigation-runtime](https://github.com/zxinyu-robot/legged-navigation-runtime)、[swarm-adapter-foundation](https://github.com/zxinyu-robot/swarm-adapter-foundation)。
+- **FSR 并入**：原 ForkSpatial-Runtime-Engine（通用空间平台，提供 ①②③ 三个翻译面的实现骨架）以 `git subtree --squash` 并入 [`fork_spatial/`](fork_spatial)，来源 `main @ 88e75b9`；跨仓契约以 [`fork_spatial/docs/contracts/`](fork_spatial/docs/contracts) 为准。
+- **关联**：[legged-navigation-runtime](https://github.com/zxinyu-robot/legged-navigation-runtime)、[swarm-adapter-foundation](https://github.com/zxinyu-robot/swarm-adapter-foundation)。
 - **参考**：[Super-LIO](https://github.com/Liansheng-Wang/Super-LIO)、[SCAN-Planner](https://github.com/wuyi2121/SCAN-Planner)、[PCT_planner](https://github.com/VectorRobotics/PCT_planner)、[unitree_ros2](https://github.com/unitreerobotics/unitree_ros2)、[livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2)。
 
 ## 许可证

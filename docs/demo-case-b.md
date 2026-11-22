@@ -29,4 +29,4 @@
 
 ## 相关接口
 
-空间状态契约通过 [ForkSpatial-Runtime-Engine](https://github.com/zxinyu-robot/ForkSpatial-Runtime-Engine) 对接；定位失效恢复插件来自 [legged-navigation-runtime](https://github.com/zxinyu-robot/legged-navigation-runtime)。这些仓库各自维护实现与验证记录。
+空间状态契约来自本仓 [`fork_spatial/`](../fork_spatial)（原 ForkSpatial-Runtime-Engine，已并入）；定位失效恢复插件来自 [legged-navigation-runtime](https://github.com/zxinyu-robot/legged-navigation-runtime)，该仓库独立维护实现与验证记录。
