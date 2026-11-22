@@ -44,7 +44,7 @@ PCT / SCAN 是技能内部的度量算子，不是 BT 的下游节点。
 | 9 | 逐点到达判定 → 技能结果 | BT | 稳定类型 `reached`/`stuck`/`plan_fail`/`link_lost` |
 | 10 | `ExecutionFeedback` 回执 + 带 `session`/`context_generation` 的物料归档 | 接缝 | — |
 
-> 第 7–9 步在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2)；当前真机链路还不经过第 3–5 步的运行时裁决。
+> 第 7–9 步在 [`platform/go2`](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/tree/platform/go2)；当前真机链路还不经过第 3–5 步的运行时裁决。
 
 ## 测试报告
 
@@ -66,15 +66,15 @@ PCT / SCAN 是技能内部的度量算子，不是 BT 的下游节点。
 | 长稳 64 KiB @ 10 Hz × 20 min × 4 轮 | 零丢失（11960/11960），p50 **1108–1134 µs**，p95 2026–2064 µs | `runtime_core/scripts/dds_soak_repeat.sh` |
 | 接收退出语义 T4（100+1s+100）× 5 | 5/5 无提前退出，`idle=2000 ms` | `runtime_core/scripts/dds_sub_exit_cases.sh` |
 
-**度量平面**：云端多楼层闭环 11/11、真机在线建图与规划 —— [云端闭环视频](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/media/cross_floor_demo.mp4)、[真机在线 + Elevator-LIO 回放](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/media/cross_floor_with_elevator_lio.mp4)。
+**度量平面**：云端多楼层闭环 11/11、真机在线建图与规划 —— [云端闭环视频](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/docs/media/cross_floor_demo.mp4)、[真机在线 + Elevator-LIO 回放](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/docs/media/cross_floor_with_elevator_lio.mp4)。
 
 未验证：Humble 容器内复跑上述接缝数字、arm64 / Jetson 实机、≥2 小时长稳、writer-only / reader-only 深度拆分；运行时接入真机主链**计划中**。时序与踩坑记录见 [dds-interop.md](runtime_core/docs/dds-interop.md)（含 Match Gate：`matched < 1` 判 `INVALID`，不出数）。
 
 ## 快速开始（无需 ROS、无需 Docker）
 
 ```bash
-git clone https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws.git
-cd quadruped-crossfloor-nav-ws
+git clone https://github.com/zxinyu-robot/autonomous-robot-task-navigation.git
+cd autonomous-robot-task-navigation
 
 # runtime_core
 python3 runtime_core/scripts/gen_contract.py --check
@@ -92,7 +92,7 @@ cmake -S fork_spatial -B build/fork_spatial && cmake --build build/fork_spatial 
 ctest --test-dir build/fork_spatial --output-on-failure && ./build/fork_spatial/examples/cpp/runtime_demo
 ```
 
-编译 `runtime_core/dds/` 原生类型支持（需 `find_package(CycloneDDS)` 找到 `libddsc`）：加 `-DLEGGED_NAV_BUILD_DDS=ON`。Go2 真机构建与起栈见 [`platform/go2` README](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/README.md)。
+编译 `runtime_core/dds/` 原生类型支持（需 `find_package(CycloneDDS)` 找到 `libddsc`）：加 `-DLEGGED_NAV_BUILD_DDS=ON`。Go2 真机构建与起栈见 [`platform/go2` README](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/README.md)。
 
 ## 署名与许可
 
