@@ -12,7 +12,7 @@
 | `main` | 运行时：`runtime_core/`、`runtime/task_runtime/`、`fork_spatial/`、接口消息、架构与契约文档 | 主线，按运行时管理 |
 | [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2) | Go2 真机跑通链路：ROS 2 overlay（`src/`）、`docker/`、`scripts/`、`patches/`、`third_party/`、运维与验收记录、演示视频 | 冻结、只读；真机部署只认这个分支 |
 
-Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`、`scripts/`、`docker/` 路径都指 `platform/go2` 分支。
+Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`、`scripts/`、`docker/` 路径都指 `platform/go2` 分支。首页图片统一存在 `main` 的 `docs/media/`，`platform/go2` 的 README 直接引用这里的文件，不重复存二进制。
 
 ## 项目定位
 
@@ -28,7 +28,7 @@ Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`
 | `runtime/task_runtime/` | 任务状态机与插件注册；可选 LNR 恢复桥、FSR 契约桥 | C++20，ROS-free |
 | `fork_spatial/` | 空间状态契约与故障注入、Token / ESN / 端侧策略、MissionOrchestrator（原 ForkSpatial-Runtime-Engine） | C++20，ROS-free |
 | `interfaces/motionslam_msgs/` | 跨平面 `.msg` 原件（含 rebind 草案）；`runtime_core/dds/` 的 DDS 类型由它导出生成 | ROS 2 interface 包 |
-| `docs/` | 架构、规划、符号空间契约、DDS 参考 | — |
+| `docs/` | 架构、规划、符号空间契约、DDS 参考；`docs/架构/assets/`、`docs/media/` 存首页用的图 | — |
 
 三个模块的职责还有重叠（两套 `TaskRuntime`、两份 `SpatialState`），对齐计划见 [ROADMAP](docs/ROADMAP.md)。
 
@@ -41,6 +41,7 @@ Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`
 | fork_spatial 空间状态与故障注入 | 合成数据·单元测试 | `fork_spatial` ctest + demo |
 | DDS 接缝互通、QoS、SHM、长稳 | 本机原生环境实验（非容器、非真机） | `runtime_core/docs/dds-interop.md` |
 | 运行时接入 Go2 真机主链 | **计划中**（当前真机链路不经过运行时） | — |
+
 ## 一条完整链路：跨楼层任务从进来到反馈回去
 
 以「从一楼去二楼会议室门口」为例走一遍真实链路。每一步都标出谁执行、门在哪、失败回哪一层。
@@ -65,7 +66,14 @@ Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`
 - **第 6 步之后不是一条直线。** 第 7 步失败回到第 6 步重决策，而不是让 BT 重试同一个目标点。
 
 > 第 7–9 步（PCT / SCAN / Forwarders / Go2）在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2) 分支；当前真机链路还不经过第 3–5 步的运行时裁决。
+
 ## 架构：两个平面一条接缝
+
+![实现架构图：代码调用关系全景](docs/media/qcn_arch.png)
+
+> 图源 `docs/media/qcn_arch.png`（生成时的代码快照）。颜色即验收级别：**绿**＝真机主链在运行、**蓝**＝主链 launch 里默认关闭、**橙**＝只在测试/实验中运行、**灰**＝云端两层（文档记录已闭环）、**红虚线**＝设计意图、代码里没有。图上带 `src/` 前缀的节点，实体在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2) 分支。
+
+下面的文字图只保留两个平面和一条接缝，不看目录。
 
 ```text
 ┌─ 符号平面（runtime_core/）──────────────────────────────────────────────────────┐
@@ -125,6 +133,7 @@ Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`
 | 缺了它会怎样 | 定位过期时没人拦，上层能直接下发运动 | 技能内每次卡住都要回任务级，恢复太慢 |
 
 > **BT 不是 SCAN 的前一级**：PCT / SCAN 是技能内部的度量算子，不是 BT 的下游节点。把三者画成直线，会掩盖「失败到底该回哪一层重决策」。
+
 ## 测试报告
 
 **符号平面**（`runtime_core/`，无需 ROS）
@@ -145,7 +154,7 @@ Go2 在 `main` 上是一个被接入的平台。`main` 文档里提到的 `src/`
 | 长稳 64 KiB @ 10 Hz × 20 min × 4 轮 | 零丢失（11960/11960），p50 **1108–1134 µs**，p95 2026–2064 µs | `runtime_core/scripts/dds_soak_repeat.sh` |
 | 接收退出语义 T4（100+1s+100）× 5 | 5/5 无提前退出，`idle=2000 ms` | `runtime_core/scripts/dds_sub_exit_cases.sh` |
 
-**度量平面**：云端多楼层闭环 11/11、真机在线建图与规划，证据在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2) 分支。
+**度量平面**：云端多楼层闭环 11/11、真机在线建图与规划 —— [云端闭环视频](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/media/cross_floor_demo.mp4)、[真机在线 + Elevator-LIO 回放视频](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/blob/platform/go2/docs/media/cross_floor_with_elevator_lio.mp4)；实现、运维与验收记录都在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2) 分支。
 
 **未验证**（不写成已验证）：Humble 容器内复跑上述接缝数字、arm64 / Jetson 实机、≥2 小时长稳、writer-only / reader-only 深度拆分。
 
