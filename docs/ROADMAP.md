@@ -38,7 +38,7 @@
   C++ TaskRuntime 同契约，仅用于云端验证入口链路；工程形态以 C++ 为准
 - [x] **motionslam_ipc**：决策=移除。无任何调用方、Super-LIO 写入改动不在
   patches；包、依赖声明、唯一消费头文件均已删
-- [ ] **决策模型 + ESN → 迁至 [Fork Spatial Runtime](https://github.com/zxinyu-robot/fork-spatial-runtime)**：
+- [ ] **决策模型 + ESN → 迁至 Fork Spatial Runtime（已并入本仓 [`fork_spatial/`](../fork_spatial)）**：
   语义 Token 编码与资源管理、ESN 行为时序记忆、端侧在线学习调度是跨机器人
   （四足 / 人形 / 无人机）的通用核心，在 Fork Spatial Runtime 实现；本仓库只做
   Go2 侧适配接入，不在本仓库实现决策层本体
