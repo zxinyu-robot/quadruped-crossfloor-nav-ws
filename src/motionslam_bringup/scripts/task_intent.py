@@ -24,8 +24,23 @@ from behavior_mode import (
     ALLOWED_PLATFORMS,
     ALLOWED_SKILLS,
     _has_forbidden_control,
-    _norm,
 )
+
+# 严格类型规则对齐 runtime_core（legged_nav.task_intent）：
+# 契约归一化仅接受 str，数值仅接受 JSON number（bool 不算数字），
+# 字符串不做隐式转换，避免双实现判定漂移。
+_ASCII_WS = " \t\n\r\f\v"
+
+
+def _norm(value):
+    return value.strip(_ASCII_WS) if isinstance(value, str) else ""
+
+
+def _num(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
 
 SCHEMA_INTENT = "motionslam.task_intent.v1"
 SCHEMA_FEEDBACK = "motionslam.execution_feedback.v1"
@@ -106,12 +121,10 @@ def validate_task_intent(
     map_id = _norm(world.get("map_id", ""))
     if not map_id:
         return None, _err("REJECT_MISSING_MAP_ID")
-    try:
-        revision = int(world.get("revision", -1))
-    except (TypeError, ValueError):
+    revision_raw = _num(world.get("revision"))
+    if revision_raw is None or revision_raw < 0:
         return None, _err("REJECT_BAD_REVISION")
-    if revision < 0:
-        return None, _err("REJECT_BAD_REVISION")
+    revision = int(revision_raw)
 
     skills_raw = raw.get("skills")
     if not isinstance(skills_raw, list) or not skills_raw:
@@ -131,9 +144,8 @@ def validate_task_intent(
             g = item.get("goal")
             if not isinstance(g, dict):
                 return None, _err(f"REJECT_SKILL_{i}_MISSING_GOAL")
-            try:
-                gx, gy, gz = float(g["x"]), float(g["y"]), float(g["z"])
-            except (KeyError, TypeError, ValueError):
+            gx, gy, gz = _num(g.get("x")), _num(g.get("y")), _num(g.get("z"))
+            if gx is None or gy is None or gz is None:
                 return None, _err(f"REJECT_SKILL_{i}_BAD_GOAL")
             goal = IntentGoal(gx, gy, gz, _norm(g.get("frame_id") or world.get("frame_id") or "world"))
         skills.append(IntentSkill(name=name, goal=goal))
@@ -141,18 +153,18 @@ def validate_task_intent(
     policy = raw.get("policy") if isinstance(raw.get("policy"), dict) else {}
     deadline = 0.0
     if policy.get("deadline_s") is not None:
-        try:
-            deadline = float(policy["deadline_s"])
-        except (TypeError, ValueError):
+        deadline_raw = _num(policy["deadline_s"])
+        if deadline_raw is None or deadline_raw <= 0:
             return None, _err("REJECT_BAD_DEADLINE")
-        if deadline <= 0:
-            return None, _err("REJECT_BAD_DEADLINE")
+        deadline = deadline_raw
 
     execution = raw.get("execution") if isinstance(raw.get("execution"), dict) else {}
-    try:
-        priority = int(execution.get("priority", 0))
-    except (TypeError, ValueError):
-        return None, _err("REJECT_BAD_PRIORITY")
+    priority = 0
+    if execution.get("priority") is not None:
+        priority_raw = _num(execution["priority"])
+        if priority_raw is None:
+            return None, _err("REJECT_BAD_PRIORITY")
+        priority = int(priority_raw)
     preemptible = execution.get("preemptible", False)
     if not isinstance(preemptible, bool):
         return None, _err("REJECT_BAD_PREEMPTIBLE")
@@ -256,13 +268,18 @@ def build_feedback(
     detail: str = "",
     timestamp_ns: int = 0,
 ) -> dict[str, Any]:
-    """Execution Feedback（目标架构上行）。"""
-    return {
+    """Execution Feedback（目标架构上行）。
+
+    progress 展平为 ``progress.<key>``，与 runtime_core C++/Python 同构。
+    """
+    fb: dict[str, Any] = {
         "schema": SCHEMA_FEEDBACK,
         "task_id": task_id,
         "state": state,
         "event": event,
-        "progress": progress or {},
         "detail": detail,
         "timestamp_ns": timestamp_ns,
     }
+    for key, value in (progress or {}).items():
+        fb[f"progress.{key}"] = value
+    return fb
