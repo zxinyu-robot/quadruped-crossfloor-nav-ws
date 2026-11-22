@@ -13,6 +13,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MotionCommand.msg"
   "msg/TerrainObservation.msg"
   "msg/TerrainDecision.msg"
+  "msg/WorldRef.msg"
+  "msg/TaskBinding.msg"
+  "msg/RebindRequest.msg"
+  "msg/RebindRecord.msg"
+  "msg/RebindState.msg"
+  "msg/ArtifactEpoch.msg"
   DEPENDENCIES builtin_interfaces std_msgs
 )
 

@@ -29,6 +29,7 @@ install(PROGRAMS scripts/cloud_to_grid.py scripts/robot_pose_viz.py
   scripts/semantic_mission.py
   scripts/task_context.py
   scripts/action_group.py
+  scripts/behavior_mode.py
   scripts/command_executor_node.py
   scripts/directive_receiver_node.py
   scripts/frontier_export.py
