@@ -1,6 +1,9 @@
-# Quadruped Cross-Floor Navigation Runtime
+# Fork Navigation Runtime
 
 [![Original code license](https://img.shields.io/badge/Original%20code-MIT-blue.svg)](LICENSE)
+面向弱网 / 断网自主机器人的语义状态管理、时序行为记忆与端侧持续学习运行时。
+
+A semantic-state, behavior-memory and edge continual-learning runtime for autonomous robots under weak or no connectivity.
 
 > 端侧任务运行时：上层只给任务意图，能不能执行由状态门控裁决，结果用稳定类型回执 —— 不靠日志猜，也不允许绕过裁决直接下发运动。
 > 本分支只保留 ROS-free 运行时；Go2 真机链路（ROS 2 overlay、`docker/`、`scripts/`、演示视频）在 [`platform/go2`](https://github.com/zxinyu-robot/quadruped-crossfloor-nav-ws/tree/platform/go2)。
