@@ -1,0 +1,28 @@
+if(FSR_BUILD_EXAMPLES)
+  add_executable(runtime_demo runtime_demo.cpp)
+  target_link_libraries(runtime_demo PRIVATE fork_spatial::runtime)
+endif()
+
+if(BUILD_TESTING)
+  add_executable(test_spatial_runtime test_spatial_runtime.cpp)
+  target_link_libraries(test_spatial_runtime PRIVATE fork_spatial::runtime)
+  add_test(NAME spatial_runtime COMMAND test_spatial_runtime)
+endif()
+
+if(BUILD_TESTING)
+  add_executable(test_cognition test_cognition.cpp)
+  target_link_libraries(test_cognition PRIVATE fork_spatial::cognition)
+  add_test(NAME cognition COMMAND test_cognition)
+endif()
+
+if(BUILD_TESTING)
+  add_executable(test_mission test_mission.cpp)
+  target_link_libraries(test_mission PRIVATE fork_spatial::mission)
+  add_test(NAME mission COMMAND test_mission)
+endif()
+
+if(BUILD_TESTING)
+  add_executable(test_contract test_contract.cpp)
+  target_link_libraries(test_contract PRIVATE fork_spatial::contract fork_spatial::cognition fork_spatial::mission)
+  add_test(NAME contract COMMAND test_contract)
+endif()
