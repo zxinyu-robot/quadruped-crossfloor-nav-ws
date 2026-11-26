@@ -62,6 +62,7 @@ export GO2_IP=<机器狗 IP>          # Foxglove 绑定用
 | [docs/ROADMAP.md](docs/ROADMAP.md) | 路线与待办 |
 | [docs/架构/架构_端侧系统架构.md](docs/架构/架构_端侧系统架构.md) | 目标架构（三空间、两个平面） |
 | [docs/开发参考/](docs/开发参考) | DDS 性能、PCT 接入、外参标定、Foxglove 等专题 |
+| [docs/实验/候选选择策略_20261127.md](docs/实验/候选选择策略_20261127.md) | 4 种候选前沿选择策略 + 消融（20 目标 × 7 配置，140 局；复现脚本在 [experiments/frontier_policy](experiments/frontier_policy)） |
 
 运行时的接口、契约与测试说明在 [`main`](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/tree/main)：`runtime_core/`、`fork_spatial/`、`interfaces/motionslam_msgs/`。
 

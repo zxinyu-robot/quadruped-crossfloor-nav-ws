@@ -1,0 +1,23 @@
+scan_planner_node:
+  ros__parameters:
+    grid_map.obstacle_height_max: 3.0
+    manager.max_vel: 0.5
+    manager.max_acc: 2.5
+    manager.max_jerk: 8.0
+    optimization.max_vel: 0.5
+    optimization.max_acc: 2.5
+    optimization.max_jerk: 8.0
+    optimization.acc_tolerance: 1.5
+    optimization.vel_tolerance: 0.3
+closed_loop_controller:
+  ros__parameters:
+    tracking.max_vx: 0.5
+    tracking.max_vy: 0.4
+    tracking.max_yaw_rate: 1.5
+demo_scan_bt_orchestrator:
+  ros__parameters:
+    frontier_strategy: nearest
+    search_max_time_s: 50.0
+    search_max_frontier_visits: 8
+    search_max_distance_m: 40.0
+    max_subgoal_dist_m: 12.0

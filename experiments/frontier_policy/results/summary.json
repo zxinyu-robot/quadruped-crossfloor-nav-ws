@@ -1,0 +1,93 @@
+{
+ "semantic": {
+  "n": 20,
+  "success_rate": 0.75,
+  "spl": 0.6924361178320827,
+  "dec_p50_ms": 0.11485000000000001,
+  "dec_p95_ms": 0.21439999999999995,
+  "decisions": 62,
+  "switches": 10.8,
+  "invalid_rate": 0.04838709677419355,
+  "dispatches": 62,
+  "travel_m": 7.8606,
+  "time_s": 23.1616
+ },
+ "nearest": {
+  "n": 20,
+  "success_rate": 0.2,
+  "spl": 0.10836493611896056,
+  "dec_p50_ms": 0.0822,
+  "dec_p95_ms": 0.22209999999999994,
+  "decisions": 129,
+  "switches": 20.6,
+  "invalid_rate": 0.007751937984496124,
+  "dispatches": 129,
+  "travel_m": 13.772049999999998,
+  "time_s": 5.074450000000001
+ },
+ "weighted_no_info": {
+  "n": 20,
+  "success_rate": 0.8,
+  "spl": 0.6827282889516846,
+  "dec_p50_ms": 0.1218,
+  "dec_p95_ms": 0.27413,
+  "decisions": 75,
+  "switches": 12.1,
+  "invalid_rate": 0.02666666666666667,
+  "dispatches": 75,
+  "travel_m": 9.202549999999999,
+  "time_s": 26.929250000000003
+ },
+ "weighted": {
+  "n": 20,
+  "success_rate": 0.6,
+  "spl": 0.5158901756107008,
+  "dec_p50_ms": 0.1157,
+  "dec_p95_ms": 0.2617399999999999,
+  "decisions": 89,
+  "switches": 14.1,
+  "invalid_rate": 0.02247191011235955,
+  "dispatches": 89,
+  "travel_m": 11.04465,
+  "time_s": 12.52585
+ },
+ "infogain": {
+  "n": 20,
+  "success_rate": 0.35,
+  "spl": 0.23412294561026462,
+  "dec_p50_ms": 0.1113,
+  "dec_p95_ms": 0.23624,
+  "decisions": 89,
+  "switches": 13.6,
+  "invalid_rate": 0.0,
+  "dispatches": 89,
+  "travel_m": 23.30035,
+  "time_s": 12.050799999999999
+ },
+ "weighted_no_sem": {
+  "n": 20,
+  "success_rate": 0.3,
+  "spl": 0.2808857472590883,
+  "dec_p50_ms": 0.11855,
+  "dec_p95_ms": 0.19547999999999977,
+  "decisions": 122,
+  "switches": 19.5,
+  "invalid_rate": 0.03278688524590164,
+  "dispatches": 122,
+  "travel_m": 11.716,
+  "time_s": 8.050450000000001
+ },
+ "weighted_no_dist": {
+  "n": 20,
+  "success_rate": 0.75,
+  "spl": 0.6742178448805236,
+  "dec_p50_ms": 0.12985000000000002,
+  "dec_p95_ms": 0.25281,
+  "decisions": 80,
+  "switches": 12.35,
+  "invalid_rate": 0.0,
+  "dispatches": 80,
+  "travel_m": 9.30655,
+  "time_s": 15.48585
+ }
+}
