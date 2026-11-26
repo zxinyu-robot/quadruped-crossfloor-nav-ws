@@ -114,6 +114,7 @@ class DemoScanBtOrchestrator(Node):
         self.declare_parameter("search_max_distance_m", 30.0)
         self.declare_parameter("search_max_frontier_visits", 12)
         self.declare_parameter("frontier_strategy", "weighted")
+        self.declare_parameter("require_runtime_gate", False)
         self.declare_parameter("frontier_min_confidence", 0.15)
         self.declare_parameter("frontier_ttl_s", 5.0)
         self.declare_parameter("pct_global_nav_enabled", False)
@@ -218,6 +219,7 @@ class DemoScanBtOrchestrator(Node):
         self._search_max_distance_m = float(self.get_parameter("search_max_distance_m").value)
         self._search_max_frontier_visits = int(self.get_parameter("search_max_frontier_visits").value)
         self._frontier_strategy = str(self.get_parameter("frontier_strategy").value)
+        self._require_runtime_gate = bool(self.get_parameter("require_runtime_gate").value)
         self._frontier_min_conf = float(self.get_parameter("frontier_min_confidence").value)
         self._frontier_ttl_ns = int(float(self.get_parameter("frontier_ttl_s").value) * 1e9)
         self._pct_global_nav_enabled = bool(self.get_parameter("pct_global_nav_enabled").value)
@@ -796,6 +798,14 @@ class DemoScanBtOrchestrator(Node):
         except json.JSONDecodeError:
             return
         event = str(body.get("event", ""))
+        if (
+            event == "task_accepted"
+            and self._require_runtime_gate
+            and str(body.get("gate", "")) != "runtime"
+        ):
+            self._emit("task_blocked_ungated", command_id=str(body.get("command_id", "")))
+            self.get_logger().warn("task_accepted 未过 runtime 闸门，已拦截")
+            return
         if event == "task_accepted":
             self._semantic_command_id = str(body.get("command_id", ""))
             self._semantic_language_query = str(body.get("language_query", ""))

@@ -19,9 +19,10 @@ import time
 from typing import Any, Optional
 
 import rclpy
+from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
-from std_msgs.msg import Bool, String
+from std_msgs.msg import Bool, String, UInt64
 
 # 允许在不安装 runtime_core 的镜像里显式指定源码路径（参数 runtime_core_src）
 def _bootstrap_runtime_core(src: str) -> None:
@@ -52,13 +53,14 @@ class RuntimeBridgeNode(Node):
         self.declare_parameter("ttl_s", 0.5)
         self.declare_parameter("max_goal_dist_m", 12.0)
         self.declare_parameter("bounds", [-1.0, -1.0, 11.0, 11.0])
-        self.declare_parameter("local_platform", "unitree_go2")
+        self.declare_parameter("local_platform", "")  # 生产环境建议钉死，如 unitree_go2
         self.declare_parameter("local_robot_id", "")
         self.declare_parameter("confidence_tau_s", 0.6)
         self.declare_parameter("drift_penalty_m", 0.25)
         self.declare_parameter("runtime_core_src", "")
         self.declare_parameter("map_id", "")
-        self.declare_parameter("state_revision", 0)
+        self.declare_parameter("state_revision", 0)  # 兜底；优先用 context_generation
+        self.declare_parameter("context_generation_topic", "/lio/backend/context_generation")
         self.declare_parameter("intent_topic", "/runtime/task_request")
         self.declare_parameter("gate_topic", "/runtime/gate")
         self.declare_parameter("mission_event_topic", "/demo/mission/event")
@@ -67,6 +69,8 @@ class RuntimeBridgeNode(Node):
         self.declare_parameter("drift_topic", "/lio/backend/drift_estimate")
         self.declare_parameter("frontier_topic", "/demo/mission/frontier_snapshot")
         self.declare_parameter("semantic_valid_topic", "/semantic/valid")
+        self.declare_parameter("goal_topic", "/demo/mission/semantic_goal")
+        self.declare_parameter("body_height", 0.35)
 
         _bootstrap_runtime_core(str(self.get_parameter("runtime_core_src").value))
         from legged_nav.spatial_state import SpatialState
@@ -98,17 +102,25 @@ class RuntimeBridgeNode(Node):
         self._drift_m = 0.0
         self._candidates = 0
         self._candidates_at = 0.0
+        self._context_generation = int(self.get_parameter("state_revision").value)
         self._active = None
 
         self.ev_pub = self.create_publisher(String, str(self.get_parameter("mission_event_topic").value), 20)
         self.gate_pub = self.create_publisher(String, str(self.get_parameter("gate_topic").value), 20)
         self.valid_pub = self.create_publisher(Bool, str(self.get_parameter("semantic_valid_topic").value), 10)
+        self.goal_pub = self.create_publisher(PoseStamped, str(self.get_parameter("goal_topic").value), 10)
 
         self.create_subscription(String, str(self.get_parameter("intent_topic").value), self._on_request, 10)
         self.create_subscription(Odometry, str(self.get_parameter("odom_topic").value), self._on_odom, 20)
         self.create_subscription(String, str(self.get_parameter("pgo_state_topic").value), self._on_pgo, 10)
         self.create_subscription(String, str(self.get_parameter("drift_topic").value), self._on_drift, 10)
         self.create_subscription(String, str(self.get_parameter("frontier_topic").value), self._on_frontiers, 5)
+        self.create_subscription(
+            UInt64,
+            str(self.get_parameter("context_generation_topic").value),
+            self._on_context_generation,
+            10,
+        )
         self.create_subscription(
             String, str(self.get_parameter("mission_event_topic").value), self._on_mission_event, 20
         )
@@ -131,6 +143,10 @@ class RuntimeBridgeNode(Node):
             self._drift_m = float(body.get("trans_m", body.get("drift_m", 0.0)))
         except (json.JSONDecodeError, TypeError, ValueError):
             self._drift_m = 0.0
+
+    def _on_context_generation(self, msg: UInt64) -> None:
+        """地图/上下文代数：意图 revision 必须与本地观测代数同一时间切面（C1a）。"""
+        self._context_generation = int(msg.data)
 
     def _on_frontiers(self, msg: String) -> None:
         try:
@@ -177,7 +193,7 @@ class RuntimeBridgeNode(Node):
     # ---------------- 裁决 ----------------
     def _spatial_state(self):
         map_id = str(self.get_parameter("map_id").value)
-        revision = int(self.get_parameter("state_revision").value)
+        revision = int(self._context_generation)
         if self._odom is None:
             return None
         age = time.time() - self._odom_at
@@ -228,6 +244,7 @@ class RuntimeBridgeNode(Node):
         if res.decision == self._Decision.ACCEPT:
             self._active = intent
             self._emit_accepted(intent)
+            self._publish_goal_if_any(intent)
             self._publish_valid(True)
         else:
             self._emit_rejected(intent.task_id, res.code)
@@ -268,6 +285,20 @@ class RuntimeBridgeNode(Node):
         if goal is not None:
             body.update({"x": goal.x, "y": goal.y, "z": goal.z, "frame_id": goal.frame_id})
         self._emit(**body)
+
+    def _publish_goal_if_any(self, intent) -> None:
+        """Navigate 的几何目标走既有下游通道；闸门只放行，不替代度量平面。"""
+        goal = next((s.goal for s in intent.skills if s.goal is not None), None)
+        if goal is None:
+            return
+        msg = PoseStamped()
+        msg.header.frame_id = goal.frame_id or "world"
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.pose.position.x = float(goal.x)
+        msg.pose.position.y = float(goal.y)
+        msg.pose.position.z = float(self.get_parameter("body_height").value)
+        msg.pose.orientation.w = 1.0
+        self.goal_pub.publish(msg)
 
     def _emit_rejected(self, task_id: str, reason: str) -> None:
         self._emit("task_rejected", command_id=task_id, reason=reason)
