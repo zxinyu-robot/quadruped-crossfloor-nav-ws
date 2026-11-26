@@ -114,6 +114,8 @@ class DemoScanBtOrchestrator(Node):
         self.declare_parameter("search_max_distance_m", 30.0)
         self.declare_parameter("search_max_frontier_visits", 12)
         self.declare_parameter("frontier_strategy", "weighted")
+        self.declare_parameter("frontier_min_confidence", 0.15)
+        self.declare_parameter("frontier_ttl_s", 5.0)
         self.declare_parameter("pct_global_nav_enabled", False)
         self.declare_parameter("scan_track_pct_path", False)
         self.declare_parameter("pct_initial_path_topic", "/initial_path")
@@ -216,6 +218,8 @@ class DemoScanBtOrchestrator(Node):
         self._search_max_distance_m = float(self.get_parameter("search_max_distance_m").value)
         self._search_max_frontier_visits = int(self.get_parameter("search_max_frontier_visits").value)
         self._frontier_strategy = str(self.get_parameter("frontier_strategy").value)
+        self._frontier_min_conf = float(self.get_parameter("frontier_min_confidence").value)
+        self._frontier_ttl_ns = int(float(self.get_parameter("frontier_ttl_s").value) * 1e9)
         self._pct_global_nav_enabled = bool(self.get_parameter("pct_global_nav_enabled").value)
         self._scan_track_pct_path = bool(self.get_parameter("scan_track_pct_path").value)
         self._pct_fallback_direct = bool(self.get_parameter("pct_fallback_direct").value)
@@ -621,11 +625,34 @@ class DemoScanBtOrchestrator(Node):
                         z=float(item.get("z", 0.35)),
                         geom_score=float(item.get("geom_score", 1.0)),
                         info_gain=float(item.get("info_gain", 0.0)),
+                        confidence=float(item.get("confidence", 1.0)),
+                        stamp_ns=int(item.get("stamp_ns", 0)),
                     )
                 )
             except (TypeError, ValueError):
                 continue
         self._frontier_snapshot = out
+
+    def _valid_frontiers(self) -> tuple[list[FrontierView], int]:
+        """按置信度+有效期过滤候选；返回 (有效候选, 被剔除数)。C1a / C13。"""
+        now = time.time_ns()
+        kept: list[FrontierView] = []
+        dropped = 0
+        for f in self._frontier_snapshot:
+            stale = f.stamp_ns > 0 and (now - f.stamp_ns) > self._frontier_ttl_ns
+            if stale or f.confidence < self._frontier_min_conf:
+                dropped += 1
+                continue
+            kept.append(f)
+        if dropped:
+            self._emit(
+                "candidate_gated",
+                dropped=dropped,
+                kept=len(kept),
+                min_confidence=self._frontier_min_conf,
+                ttl_s=self._frontier_ttl_ns / 1e9,
+            )
+        return kept, dropped
 
     def _active_directive(self) -> Optional[dict[str, Any]]:
         if self._semantic_directive_valid and self._semantic_directive:
@@ -691,9 +718,10 @@ class DemoScanBtOrchestrator(Node):
             self._finish_search_exhausted("budget")
             return
         directive = self._active_directive()
+        candidates, dropped = self._valid_frontiers()
         t_decision = time.perf_counter()
         picked: Optional[FrontierScore] = select_by_strategy(
-            self._frontier_snapshot,
+            candidates,
             directive,
             strategy=self._frontier_strategy,
             robot_xy=self._pose_xy(),
@@ -701,7 +729,7 @@ class DemoScanBtOrchestrator(Node):
         )
         decision_ms = (time.perf_counter() - t_decision) * 1000.0
         if picked is None:
-            self._finish_search_exhausted("no_frontier")
+            self._finish_search_exhausted("no_valid_frontier" if dropped else "no_frontier")
             return
         sg = Subgoal(
             x=picked.x,
@@ -728,7 +756,8 @@ class DemoScanBtOrchestrator(Node):
             distance_m=round(picked.distance_m, 3),
             info_gain=round(picked.info_gain, 4),
             semantic_prior=round(picked.semantic_prior, 4),
-            candidate_count=len(self._frontier_snapshot),
+            candidate_count=len(candidates),
+            candidate_dropped=dropped,
         )
         self._emit(
             "search_explore",

@@ -56,6 +56,8 @@ def _setup(context, *args, **kwargs):
     pct_enabled = with_pct_planner.lower() in ("true", "1", "yes")
     with_semantic_objnav = LaunchConfiguration("with_semantic_objnav").perform(context)
     semantic_objnav_enabled = with_semantic_objnav.lower() in ("true", "1", "yes")
+    with_runtime_bridge = LaunchConfiguration("with_runtime_bridge").perform(context)
+    runtime_bridge_enabled = with_runtime_bridge.lower() in ("true", "1", "yes")
     with_semantic_bev = LaunchConfiguration("with_semantic_bev").perform(context)
     bev_enabled = with_semantic_bev.lower() in ("true", "1", "yes")
     with_pct_python = LaunchConfiguration("with_pct_python").perform(context)
@@ -460,6 +462,22 @@ def _setup(context, *args, **kwargs):
                     )
                 )
             )
+    if runtime_bridge_enabled:
+        actions.append(
+            Node(
+                package="motionslam_bringup",
+                executable="runtime_bridge_node.py",
+                name="runtime_bridge",
+                output="screen",
+                parameters=[
+                    {
+                        "gate_mode": LaunchConfiguration("runtime_gate_mode").perform(context),
+                        "runtime_core_src": LaunchConfiguration("runtime_core_src").perform(context),
+                    }
+                ],
+            )
+        )
+
     if bev_enabled:
         actions.append(
             Node(
@@ -651,6 +669,13 @@ def generate_launch_description():
                 default_value="",
                 description="追加到 SCAN/controller/forwarder/BT 的覆盖参数文件（云端用 demo_scan_planner_cloud.yaml）",
             ),
+            DeclareLaunchArgument(
+                "with_runtime_bridge",
+                default_value="false",
+                description="主链接缝：TaskIntent → 五级准入 → BT（runtime_core）",
+            ),
+            DeclareLaunchArgument("runtime_gate_mode", default_value="shadow"),
+            DeclareLaunchArgument("runtime_core_src", default_value=""),
             DeclareLaunchArgument(
                 "with_semantic_objnav",
                 default_value="false",

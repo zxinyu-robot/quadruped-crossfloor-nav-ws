@@ -10,6 +10,7 @@ install(PROGRAMS scripts/cloud_to_grid.py scripts/robot_pose_viz.py
   scripts/planning_trajectory_viz.py
   scripts/pct_planner_env.sh
   scripts/demo_scan_bt_orchestrator.py
+  scripts/runtime_bridge_node.py
   scripts/demo_scan_bt_core.py
   scripts/plan_fail_recovery.py
   scripts/return_home.py

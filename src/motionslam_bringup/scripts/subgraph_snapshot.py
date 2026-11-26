@@ -42,6 +42,8 @@ class FrontierView:
     z: float
     geom_score: float = 1.0
     info_gain: float = 0.0
+    confidence: float = 1.0  # 观测新鲜度（0~1），见 C1a
+    stamp_ns: int = 0        # 该候选最后一次被观测到的时刻
 
 
 @dataclass
@@ -116,6 +118,8 @@ def build_sparse_subgraph_v1(data: SubgraphBuildInput) -> dict[str, Any]:
             "z": round(f.z, 4),
             "geom_score": round(f.geom_score, 4),
             "info_gain": round(f.info_gain, 4),
+            "confidence": round(f.confidence, 4),
+            "stamp_ns": int(f.stamp_ns),
         }
         for f in data.frontiers
     ]
