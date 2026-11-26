@@ -1,0 +1,485 @@
+{
+  "now_ns": 1000000000000,
+  "limits": {
+    "min_confidence": 0.5,
+    "ttl_ns": 500000000,
+    "max_goal_dist_m": 12.0,
+    "min_x": -1.0,
+    "min_y": -1.0,
+    "max_x": 11.0,
+    "max_y": 11.0,
+    "local_platform": "unitree_go2",
+    "local_robot_id": "go2-01",
+    "priority_min": -100,
+    "priority_max": 100
+  },
+  "state": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0,
+    "yaw_deg": 0.0,
+    "map_id": "m1",
+    "revision": 0,
+    "localization_confidence": 0.9,
+    "valid": true,
+    "age_ns": 10000000
+  },
+  "cases": [
+    {
+      "name": "accept_navigate",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-accept",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0,
+          "frame_id": "world"
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "candidate_count": 0,
+      "expect": {
+        "decision": "ACCEPT",
+        "level": 6,
+        "code": "accept"
+      }
+    },
+    {
+      "name": "accept_explore_with_candidates",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-explore",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "ExploreFrontier"
+          }
+        ]
+      },
+      "candidate_count": 3,
+      "expect": {
+        "decision": "ACCEPT",
+        "level": 6,
+        "code": "accept"
+      }
+    },
+    {
+      "name": "l2_out_of_bounds",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-oob",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 42.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "expect": {
+        "decision": "REJECT",
+        "level": 2,
+        "code": "REJECT_GOAL_OUT_OF_BOUNDS"
+      }
+    },
+    {
+      "name": "l2_too_far",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-far",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 10.0,
+              "y": 10.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "limits": {
+        "max_goal_dist_m": 5.0
+      },
+      "expect": {
+        "decision": "REJECT",
+        "level": 2,
+        "code": "REJECT_GOAL_TOO_FAR"
+      }
+    },
+    {
+      "name": "l3_expired",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-expired",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "state": {
+        "age_ns": 10000000000
+      },
+      "limits": {
+        "ttl_ns": 500000000
+      },
+      "expect": {
+        "decision": "DEGRADED",
+        "level": 3,
+        "code": "SAFETY_INTERLOCK:state_expired",
+        "degraded_mode": "stop_and_hold"
+      }
+    },
+    {
+      "name": "l3_low_confidence",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-lowconf",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "state": {
+        "localization_confidence": 0.2
+      },
+      "expect": {
+        "decision": "DEGRADED",
+        "level": 3,
+        "code": "SAFETY_INTERLOCK:low_confidence",
+        "degraded_mode": "stop_and_hold"
+      }
+    },
+    {
+      "name": "l4_no_candidate",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-nocand",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "ExploreFrontier"
+          }
+        ]
+      },
+      "candidate_count": 0,
+      "expect": {
+        "decision": "DEGRADED",
+        "level": 4,
+        "code": "REJECT_NO_CANDIDATE",
+        "degraded_mode": "no_candidate"
+      }
+    },
+    {
+      "name": "l5_forbidden_named",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-keepout",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ],
+        "navigation": {
+          "forbidden_areas": [
+            "keepout"
+          ]
+        }
+      },
+      "forbidden_areas": {
+        "keepout": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.0,
+            5.0
+          ],
+          [
+            0.0,
+            5.0
+          ]
+        ]
+      },
+      "expect": {
+        "decision": "REJECT",
+        "level": 5,
+        "code": "REJECT_GOAL_IN_FORBIDDEN_AREA:keepout@skill0"
+      }
+    },
+    {
+      "name": "l5_unknown_area",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-noarea",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 8.0,
+              "y": 8.0,
+              "z": 0.0
+            }
+          }
+        ],
+        "navigation": {
+          "forbidden_areas": [
+            "nope"
+          ]
+        }
+      },
+      "forbidden_areas": {
+        "keepout": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.0,
+            5.0
+          ],
+          [
+            0.0,
+            5.0
+          ]
+        ]
+      },
+      "expect": {
+        "decision": "REJECT",
+        "level": 5,
+        "code": "REJECT_UNKNOWN_AREA:nope"
+      }
+    },
+    {
+      "name": "arbitration_duplicate",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-dup",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Stand"
+          }
+        ]
+      },
+      "seed_records": [
+        "t-dup"
+      ],
+      "expect": {
+        "decision": "REJECT",
+        "level": 6,
+        "code": "REJECT_DUPLICATE_TASK_ID"
+      }
+    },
+    {
+      "name": "arbitration_busy",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-new",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Stand"
+          }
+        ]
+      },
+      "active_intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-active",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "expect": {
+        "decision": "REJECT",
+        "level": 6,
+        "code": "REJECT_BUSY"
+      }
+    },
+    {
+      "name": "arbitration_idempotent",
+      "intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-same",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "active_intent": {
+        "schema": "motionslam.task_intent.v1",
+        "task_id": "t-same",
+        "robot": {
+          "platform": "unitree_go2",
+          "sn": "go2-01"
+        },
+        "world_ref": {
+          "map_id": "m1",
+          "revision": 0
+        },
+        "skills": [
+          {
+            "name": "Navigate",
+            "goal": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        ]
+      },
+      "expect": {
+        "decision": "ACCEPT",
+        "level": 6,
+        "code": "idempotent"
+      }
+    }
+  ]
+}
