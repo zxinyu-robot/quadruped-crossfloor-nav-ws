@@ -31,7 +31,8 @@ if(LEGGED_NAV_BUILD_TESTS)
     add_executable(test_all tests/test_all.cpp)
     target_link_libraries(test_all PRIVATE legged_nav)
     target_compile_definitions(test_all PRIVATE
-        LEGGED_NAV_CONTRACT_CASES="${CMAKE_CURRENT_SOURCE_DIR}/tests/contract_cases.json")
+        LEGGED_NAV_CONTRACT_CASES="${CMAKE_CURRENT_SOURCE_DIR}/tests/contract_cases.json"
+        TASK_GATE_CASES="${CMAKE_CURRENT_SOURCE_DIR}/tests/task_gate_cases.json")
     add_test(NAME legged_nav_all COMMAND test_all)
 endif()
 

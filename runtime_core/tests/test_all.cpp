@@ -14,6 +14,7 @@
 #include "legged_nav/runtime.hpp"
 #include "legged_nav/spatial_context.hpp"
 #include "legged_nav/spatial_state.hpp"
+#include "legged_nav/task_gate.hpp"
 #include "legged_nav/task_intent.hpp"
 #include "legged_nav/transport.hpp"
 #include "legged_nav/vision_loop.hpp"
@@ -37,6 +38,8 @@ static std::string err_of(const std::variant<TaskIntent, std::string>& v) {
 static bool has_err(const std::variant<TaskIntent, std::string>& v, const char* prefix) {
     return err_of(v).rfind(prefix, 0) == 0;
 }
+
+#include "task_gate_cases.inc"
 
 static SpatialState good_state(long long ts = now_ns()) {
     SpatialState s;
@@ -70,6 +73,8 @@ static std::string intent_with(const char* extra) {
 }
 
 int main() {
+    // ---------- task gate corpus（与 Python 同语料） ----------
+    CHECK(run_task_gate_corpus(TASK_GATE_CASES, &passed) == 0);
     // ---------- json ----------
     auto j = parse_json(R"({"a":1,"b":[true,"x"],"c":{"d":null}})");
     CHECK(j && j->get("a")->num() == 1.0 && j->get("b")->arr().size() == 2);

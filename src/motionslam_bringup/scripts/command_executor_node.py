@@ -32,6 +32,7 @@ from behavior_mode import (  # noqa: E402
     extract_skills,
     validate_thing_envelope,
 )
+from runtime_intent import build_intent, skills_from_envelope, skills_from_stages  # noqa: E402
 from task_context import TaskIdentityContext  # noqa: E402
 
 try:
@@ -61,6 +62,10 @@ class CommandExecutorNode(Node):
         self.declare_parameter("require_behavior_mode", False)
         self.declare_parameter("robot_id", "go2_001")
         self.declare_parameter("platform", "unitree_go2_edu")
+        self.declare_parameter("runtime_gate_enabled", False)
+        self.declare_parameter("intent_topic", "/runtime/task_request")
+        self.declare_parameter("intent_priority", 0)
+        self.declare_parameter("intent_deadline_s", 0.0)
 
         self._enabled = bool(self.get_parameter("enabled").value)
         self._session_id = str(self.get_parameter("session_id").value)
@@ -75,6 +80,9 @@ class CommandExecutorNode(Node):
         self._require_behavior_mode = bool(self.get_parameter("require_behavior_mode").value)
         self._robot_id = str(self.get_parameter("robot_id").value)
         self._platform = str(self.get_parameter("platform").value)
+        self._runtime_gate = bool(self.get_parameter("runtime_gate_enabled").value)
+        self._intent_priority = int(self.get_parameter("intent_priority").value)
+        self._intent_deadline_s = float(self.get_parameter("intent_deadline_s").value)
 
         ids = self.get_parameter("known_frontier_ids").value
         self._known_frontiers = {str(x) for x in ids} if isinstance(ids, (list, tuple)) else set()
@@ -109,6 +117,9 @@ class CommandExecutorNode(Node):
 
         self._event_pub = self.create_publisher(String, "/demo/mission/event", 10)
         self._goal_pub = self.create_publisher(PoseStamped, "/demo/mission/semantic_goal", 10)
+        self._intent_pub = self.create_publisher(
+            String, str(self.get_parameter("intent_topic").value), 10
+        )
         if MotionCommand is not None:
             self._motion_pub = self.create_publisher(MotionCommand, "/motion/command", 10)
         else:
@@ -215,6 +226,36 @@ class CommandExecutorNode(Node):
             return
         self._publish_nav_goal_xyz(wp, str(action_group.get("frame_id", self._frame_id)))
 
+    def _submit_runtime_intent(
+        self, *, task_id: str, skills: Optional[list], language_query: str = ""
+    ) -> bool:
+        """把上游意图降维成 TaskIntent 交给 runtime 闸门；不直接驱动 BT。"""
+        if not skills:
+            return False
+        body = build_intent(
+            task_id=task_id,
+            skills=skills,
+            platform=self._platform,
+            robot_id=self._robot_id,
+            map_id=self._map_id,
+            revision=self._context_generation,
+            frame_id=self._frame_id,
+            priority=self._intent_priority,
+            deadline_s=self._intent_deadline_s,
+        )
+        self._intent_pub.publish(String(data=json.dumps(body, ensure_ascii=False)))
+        self._emit_event(
+            "task_forwarded",
+            command_id=task_id,
+            skills=[item["name"] for item in skills],
+            language_query=language_query,
+        )
+        self.get_logger().info(
+            f"TaskIntent → runtime gate task_id={task_id} "
+            f"skills={[item['name'] for item in skills]}"
+        )
+        return True
+
     def _handle_validation(self, result: ActionGroupValidation) -> None:
         if not result.ok:
             self._safe_stop()
@@ -231,6 +272,21 @@ class CommandExecutorNode(Node):
         ag = result.action_group
         self._active_command_id = str(ag.get("command_id", ""))
         stage_ids = [s.get("stage_id") for s in ag.get("stages") or []]
+        if self._runtime_gate:
+            ok = self._submit_runtime_intent(
+                task_id=self._active_command_id,
+                skills=skills_from_stages(stage_ids, ag, self._frame_id),
+                language_query=str(ag.get("language_query", "")),
+            )
+            if not ok:
+                self._safe_stop()
+                self._emit_event(
+                    "task_rejected",
+                    accepted=False,
+                    reason="REJECT_RUNTIME_GOAL_UNRESOLVED",
+                    safety_state="HOLD",
+                )
+            return
         self._emit_event(
             "task_accepted",
             accepted=True,
@@ -319,6 +375,21 @@ class CommandExecutorNode(Node):
         policy = data.get("policy") if isinstance(data.get("policy"), dict) else {}
         self._active_command_id = str(env.get("tid") or env.get("command_id") or "")
         skills = extract_skills(env)
+        if self._runtime_gate:
+            ok = self._submit_runtime_intent(
+                task_id=self._active_command_id,
+                skills=skills_from_envelope(skills, env, self._frame_id),
+            )
+            if not ok:
+                self._safe_stop()
+                self._emit_event(
+                    "task_rejected",
+                    accepted=False,
+                    reason="REJECT_RUNTIME_GOAL_UNRESOLVED",
+                    safety_state="HOLD",
+                    mode_state="TERMINATED",
+                )
+            return
         self._emit_event(
             "task_accepted",
             accepted=True,

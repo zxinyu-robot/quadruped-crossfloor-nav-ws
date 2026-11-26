@@ -58,6 +58,8 @@ def _setup(context, *args, **kwargs):
     semantic_objnav_enabled = with_semantic_objnav.lower() in ("true", "1", "yes")
     with_runtime_bridge = LaunchConfiguration("with_runtime_bridge").perform(context)
     runtime_bridge_enabled = with_runtime_bridge.lower() in ("true", "1", "yes")
+    runtime_gate_mode = LaunchConfiguration("runtime_gate_mode").perform(context).lower()
+    runtime_enforce = runtime_bridge_enabled and runtime_gate_mode == "enforce"
     with_semantic_bev = LaunchConfiguration("with_semantic_bev").perform(context)
     bev_enabled = with_semantic_bev.lower() in ("true", "1", "yes")
     with_pct_python = LaunchConfiguration("with_pct_python").perform(context)
@@ -288,6 +290,8 @@ def _setup(context, *args, **kwargs):
                 "waypoints_file": "",
             }
         )
+    if runtime_enforce:
+        bt_params["require_runtime_gate"] = True
     if pct_enabled:
         bt_params["pct_global_nav_enabled"] = True
         bt_params["scan_track_pct_path"] = True
@@ -450,7 +454,11 @@ def _setup(context, *args, **kwargs):
                     executable="command_executor_node.py",
                     name="command_executor",
                     output="screen",
-                    parameters=[edge_uplink_yaml, uplink_identity],
+                    parameters=[
+                        edge_uplink_yaml,
+                        uplink_identity,
+                        {"runtime_gate_enabled": runtime_enforce},
+                    ],
                 )
             )
             actions.append(
