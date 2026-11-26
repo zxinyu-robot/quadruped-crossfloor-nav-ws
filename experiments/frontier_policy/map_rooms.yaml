@@ -1,0 +1,23 @@
+# 固定地图（2x2 房间，10m x 10m，门宽 1.2m）+ 固定起点（实验用）
+vkernel_sim:
+  ros__parameters:
+    odom_rate_hz: 50.0
+    cloud_rate_hz: 5.0
+    cmd_timeout_s: 0.6
+    start_x: 1.5
+    start_y: 1.5
+    start_yaw: 0.0
+    start_z: 0.0
+    wall_z_min: 0.30
+    wall_z_max: 1.20
+    sample_step_m: 0.05
+    wall_stride: 4
+    walls: [0.0, 0.0, 10.0, 0.0,
+            10.0, 0.0, 10.0, 10.0,
+            10.0, 10.0, 0.0, 10.0,
+            0.0, 10.0, 0.0, 0.0,
+            5.0, 0.0, 5.0, 4.4,
+            5.0, 5.6, 5.0, 10.0,
+            0.0, 5.0, 4.4, 5.0,
+            5.6, 5.0, 10.0, 5.0]
+    pillars: [50.0, 50.0, 0.01]

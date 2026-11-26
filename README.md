@@ -42,6 +42,8 @@
 | 长稳 64 KiB @ 10 Hz × 20 min × 4 轮 | 零丢失（11960/11960），p50 **1108–1134 µs**，p95 2026–2064 µs | `runtime_core/scripts/dds_soak_repeat.sh` |
 | 接收退出语义 T4（100+1s+100）× 5 | 5/5 无提前退出，`idle=2000 ms` | `runtime_core/scripts/dds_sub_exit_cases.sh` |
 
+**实验（导航栈在 `platform/go2` 侧执行）**：4 种候选前沿选择策略 + 3 组消融，20 目标 × 7 配置共 140 局；semantic 成功率 75% / SPL 0.69，nearest 20% / 0.11 —— 见 [docs/实验/候选选择策略_20261127.md](docs/实验/候选选择策略_20261127.md)，复现脚本在 [experiments/frontier_policy](experiments/frontier_policy)。
+
 **度量平面**：云端多楼层闭环 11/11、真机在线建图与规划 —— [云端闭环视频](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/docs/media/cross_floor_demo.mp4)、[真机在线 + Elevator-LIO 回放](https://github.com/zxinyu-robot/autonomous-robot-task-navigation/blob/platform/go2/docs/media/cross_floor_with_elevator_lio.mp4)。
 
 未验证：Humble 容器内复跑上述接缝数字、arm64 / Jetson 实机、≥2 小时长稳、writer-only / reader-only 深度拆分；运行时接入真机主链**计划中**。时序与踩坑记录见 [dds-interop.md](runtime_core/docs/dds-interop.md)（含 Match Gate：`matched < 1` 判 `INVALID`，不出数）。
