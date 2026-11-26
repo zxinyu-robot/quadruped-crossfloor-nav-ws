@@ -49,7 +49,11 @@ from return_home import (  # noqa: E402
     uplink_is_lost,
 )
 from semantic_mission import SemanticSubgoal, heading_to_goal, subgoal_from_pose  # noqa: E402
-from frontier_scorer import FrontierScore, select_best_frontier  # noqa: E402
+from frontier_scorer import (  # noqa: E402
+    FrontierScore,
+    select_best_frontier,
+    select_by_strategy,
+)
 from subgraph_snapshot import FrontierView  # noqa: E402
 
 
@@ -109,6 +113,7 @@ class DemoScanBtOrchestrator(Node):
         self.declare_parameter("search_max_time_s", 180.0)
         self.declare_parameter("search_max_distance_m", 30.0)
         self.declare_parameter("search_max_frontier_visits", 12)
+        self.declare_parameter("frontier_strategy", "weighted")
         self.declare_parameter("pct_global_nav_enabled", False)
         self.declare_parameter("scan_track_pct_path", False)
         self.declare_parameter("pct_initial_path_topic", "/initial_path")
@@ -210,6 +215,7 @@ class DemoScanBtOrchestrator(Node):
         self._search_max_time_s = float(self.get_parameter("search_max_time_s").value)
         self._search_max_distance_m = float(self.get_parameter("search_max_distance_m").value)
         self._search_max_frontier_visits = int(self.get_parameter("search_max_frontier_visits").value)
+        self._frontier_strategy = str(self.get_parameter("frontier_strategy").value)
         self._pct_global_nav_enabled = bool(self.get_parameter("pct_global_nav_enabled").value)
         self._scan_track_pct_path = bool(self.get_parameter("scan_track_pct_path").value)
         self._pct_fallback_direct = bool(self.get_parameter("pct_fallback_direct").value)
@@ -614,6 +620,7 @@ class DemoScanBtOrchestrator(Node):
                         y=float(item["y"]),
                         z=float(item.get("z", 0.35)),
                         geom_score=float(item.get("geom_score", 1.0)),
+                        info_gain=float(item.get("info_gain", 0.0)),
                     )
                 )
             except (TypeError, ValueError):
@@ -684,11 +691,15 @@ class DemoScanBtOrchestrator(Node):
             self._finish_search_exhausted("budget")
             return
         directive = self._active_directive()
-        picked: Optional[FrontierScore] = select_best_frontier(
+        t_decision = time.perf_counter()
+        picked: Optional[FrontierScore] = select_by_strategy(
             self._frontier_snapshot,
             directive,
+            strategy=self._frontier_strategy,
+            robot_xy=self._pose_xy(),
             exclude_ids=self._visited_frontier_ids,
         )
+        decision_ms = (time.perf_counter() - t_decision) * 1000.0
         if picked is None:
             self._finish_search_exhausted("no_frontier")
             return
@@ -712,6 +723,12 @@ class DemoScanBtOrchestrator(Node):
             semantic_score=round(picked.semantic_score, 4),
             x=round(picked.x, 3),
             y=round(picked.y, 3),
+            strategy=self._frontier_strategy,
+            decision_ms=round(decision_ms, 4),
+            distance_m=round(picked.distance_m, 3),
+            info_gain=round(picked.info_gain, 4),
+            semantic_prior=round(picked.semantic_prior, 4),
+            candidate_count=len(self._frontier_snapshot),
         )
         self._emit(
             "search_explore",

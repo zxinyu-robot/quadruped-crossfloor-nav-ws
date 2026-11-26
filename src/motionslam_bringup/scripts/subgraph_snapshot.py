@@ -41,6 +41,7 @@ class FrontierView:
     y: float
     z: float
     geom_score: float = 1.0
+    info_gain: float = 0.0
 
 
 @dataclass
@@ -114,6 +115,7 @@ def build_sparse_subgraph_v1(data: SubgraphBuildInput) -> dict[str, Any]:
             "y": round(f.y, 4),
             "z": round(f.z, 4),
             "geom_score": round(f.geom_score, 4),
+            "info_gain": round(f.info_gain, 4),
         }
         for f in data.frontiers
     ]
