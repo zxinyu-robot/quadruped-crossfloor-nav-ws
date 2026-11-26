@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 from collections import deque
 from typing import Any, Optional
 
@@ -87,6 +88,7 @@ class SubgraphPublisherNode(Node):
         self.declare_parameter("frontier_grid_max_dist_m", 12.0)
         self.declare_parameter("frontier_grid_min_cluster_cells", 2)
         self.declare_parameter("frontier_grid_min_separation_m", 1.5)
+        self.declare_parameter("frontier_confidence_tau_s", 2.0)
         self.declare_parameter("frontier_snapshot_topic", "/demo/mission/frontier_snapshot")
         self.declare_parameter("log_each_uplink", True)
         self.declare_parameter("layer_event_topic", "/edge/data_layer/layer_event")
@@ -121,8 +123,11 @@ class SubgraphPublisherNode(Node):
         self._g_min_cells = int(self.get_parameter("frontier_grid_min_cluster_cells").value)
         self._g_min_sep = float(self.get_parameter("frontier_grid_min_separation_m").value)
         self._g_free = np.zeros((self._g_n, self._g_n), dtype=bool)
+        self._g_last_seen = np.zeros((self._g_n, self._g_n), dtype=np.int64)
         self._g_hit = np.zeros((self._g_n, self._g_n), dtype=bool)
         self._g_updates = 0
+        self._conf_tau_ns = max(1, int(float(self.get_parameter(
+            "frontier_confidence_tau_s").value) * 1e9))
 
         self._version = 0
         self._pending_trigger = "periodic"
@@ -310,6 +315,7 @@ class SubgraphPublisherNode(Node):
         np.clip(fi, 0, self._g_n - 1, out=fi)
         np.clip(fj, 0, self._g_n - 1, out=fj)
         self._g_free[fj, fi] = True
+        self._g_last_seen[fj, fi] = time.time_ns()
 
         hit = min_r < (self._g_range - 1e-3)  # 只有真正观测到墙的方位才记 occupied
         if hit.any():
@@ -381,6 +387,9 @@ class SubgraphPublisherNode(Node):
                 continue
             if any(math.hypot(px - f.x, py - f.y) < self._g_min_sep for f in out):
                 continue
+            last_seen = int(self._g_last_seen[ys[k], xs[k]])
+            age_ns = max(0, time.time_ns() - last_seen) if last_seen else self._conf_tau_ns * 10
+            conf = math.exp(-age_ns / self._conf_tau_ns) if last_seen else 0.0
             out.append(
                 FrontierView(
                     frontier_id="fx_%d_%d" % (int(round(px * 100)), int(round(py * 100))),
@@ -389,6 +398,8 @@ class SubgraphPublisherNode(Node):
                     z=z,
                     geom_score=1.0 / (1.0 + float(dist[k])),
                     info_gain=pr,
+                    confidence=conf,
+                    stamp_ns=last_seen,
                 )
             )
             if len(out) >= self._frontier_cfg.max_frontiers:
@@ -414,6 +425,8 @@ class SubgraphPublisherNode(Node):
                     "z": f.z,
                     "geom_score": f.geom_score,
                     "info_gain": f.info_gain,
+                    "confidence": f.confidence,
+                    "stamp_ns": int(f.stamp_ns),
                 }
                 for f in frontiers
             ],
