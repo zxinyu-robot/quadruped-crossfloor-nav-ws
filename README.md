@@ -29,7 +29,7 @@
 | 项 | 结果 | 证据 |
 | --- | --- | --- |
 | C++ 测试 | `ctest` **2/2**（开 `-DLEGGED_NAV_BUILD_DDS=ON`；默认 OFF 时 1/1） | `runtime_core/tests/` |
-| Python 测试 | `pytest` **91** 项 | `runtime_core/tests/` |
+| Python 测试 | `pytest` **115** 项 | `runtime_core/tests/` |
 | 契约一致性 | 契约与 DDS 类型生成物 `in sync`（5 msg） | `gen_contract.py --check`、`gen_dds_types.py --check` |
 
 **接缝**
