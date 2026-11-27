@@ -10,7 +10,7 @@
 - `per_episode.csv`、`episodes.jsonl`：逐局指标（140 局）。
 - `raw/<strategy>/<goal>/result.json`：逐局原始事件流与逐次决策（策略、`decision_ms`、候选数、`info_gain`、`semantic_prior`、距离）。
 
-## 依赖的仓内改动
+## 依赖的导航栈改动（在 `platform/go2` 分支）
 
 | 文件 | 作用 |
 |---|---|
