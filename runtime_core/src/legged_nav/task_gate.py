@@ -14,8 +14,8 @@
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
 
 from .admission import AdmitDecision, TaskAdmission
 from .spatial_state import SpatialState, StateGate
@@ -78,7 +78,7 @@ class GateResult:
     code: str
     detail: str = ""
     degraded_mode: str = ""
-    intent: Optional[TaskIntent] = None
+    intent: TaskIntent | None = None
 
     @property
     def ok(self) -> bool:
@@ -96,7 +96,7 @@ class TaskGate:
 
     limits: GateLimits = field(default_factory=GateLimits)
     admission: TaskAdmission = field(default_factory=TaskAdmission)
-    state_gate: Optional[StateGate] = None
+    state_gate: StateGate | None = None
 
     def __post_init__(self) -> None:
         if self.state_gate is None:
@@ -105,7 +105,7 @@ class TaskGate:
             )
 
     # ---------------- 五级 ----------------
-    def _l1_schema(self, intent: TaskIntent) -> Optional[GateResult]:
+    def _l1_schema(self, intent: TaskIntent) -> GateResult | None:
         if not intent.skills:
             return GateResult(Decision.REJECT, Level.SCHEMA, "REJECT_NO_SKILL")
         if intent.revision < 0:
@@ -131,7 +131,7 @@ class TaskGate:
                 )
         return None
 
-    def _l2_bounds(self, intent: TaskIntent, state: Optional[SpatialState]) -> Optional[GateResult]:
+    def _l2_bounds(self, intent: TaskIntent, state: SpatialState | None) -> GateResult | None:
         lo_x, lo_y, hi_x, hi_y = self.limits.bounds
         for skill in intent.skills:
             goal = skill.goal
@@ -163,8 +163,8 @@ class TaskGate:
         return None
 
     def _l3_validity(
-        self, intent: TaskIntent, state: Optional[SpatialState], now_ns: int
-    ) -> Optional[GateResult]:
+        self, intent: TaskIntent, state: SpatialState | None, now_ns: int
+    ) -> GateResult | None:
         if state is None:
             return GateResult(
                 Decision.DEGRADED,
@@ -186,7 +186,7 @@ class TaskGate:
 
     def _l4_feasibility(
         self, intent: TaskIntent, candidate_count: int
-    ) -> Optional[GateResult]:
+    ) -> GateResult | None:
         needs = any(s.name in CANDIDATE_SKILLS for s in intent.skills)
         if needs and candidate_count <= 0:
             return GateResult(
@@ -199,8 +199,8 @@ class TaskGate:
         return None
 
     def _l5_safety(
-        self, intent: TaskIntent, forbidden_areas: Optional[dict]
-    ) -> Optional[GateResult]:
+        self, intent: TaskIntent, forbidden_areas: dict | None
+    ) -> GateResult | None:
         if not forbidden_areas:
             return None
         # ① 意图点名的区域：未知 ID 直接拒（fail closed）
@@ -229,11 +229,11 @@ class TaskGate:
         self,
         intent: TaskIntent,
         *,
-        state: Optional[SpatialState],
+        state: SpatialState | None,
         now_ns: int,
         candidate_count: int = 0,
-        active: Optional[TaskIntent] = None,
-        forbidden_areas: Optional[dict] = None,
+        active: TaskIntent | None = None,
+        forbidden_areas: dict | None = None,
         record: bool = True,
     ) -> GateResult:
         """按 L1→L5 顺序裁决；首个失败即决定结果。通过后做任务仲裁。"""
